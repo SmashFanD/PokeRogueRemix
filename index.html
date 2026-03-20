@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />   
+    <meta name="title" content="PokeRogeRemix" />
+	  <meta name="description" content="A pokemon roguelike game with mystery dungeon gameplay." />
+	  <meta name="theme-color" content="#da3838" />
+	  <meta name="keywords" content="PokeRogueRemix" />
+	  <meta name="news_keywords" content="PokeRogueRemix" />
+	  <meta name="distribution" content="Global" />
+	  <meta http-equiv="audience" content="General" />
+	  <meta property="og:title" content="PokeRogueRemix" />
+	  <meta property="og:type" content="website" />
+	  <meta property="og:description" content="A pokemon roguelike game with mystery dungeon gameplay." />
+	  <meta property="og:site_name" content="PokeRogueRemix" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>PokExplorerUnited</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000000;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #Festa {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="PokeRogueRemix"></div>
+    <script src="p5.min.js"></script>
+    <script type="module" src="src/gameloop.js"></script>
+  </body>
+</html>
