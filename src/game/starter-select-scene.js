@@ -1,7 +1,6 @@
 export function StarterSelectScene(p) {
     return {
         id: 0,
-        //What does StarterSelectScene need to store ?
         updateStarterSelectScene() {
 
         },

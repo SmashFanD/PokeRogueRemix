@@ -1,7 +1,6 @@
 export function SaveScene(p) {
     return {
         id: 0,
-        //What does SaveScene need to store ?
         updateSaveScene() {
 
         },

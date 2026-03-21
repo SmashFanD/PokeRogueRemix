@@ -1,4 +1,4 @@
-import { CanvasSizeBase, FPS_RATE, GameState } from './data/data.js';
+import { ConfigGame, ConfigUI } from './system.js';
 import { Game } from './game/game.js';
 import { Input } from './game/manage-input.js';
 //import { savedGameData } from './data/savedGameData.js';
@@ -13,38 +13,39 @@ Input.init();
 
 new p5((p) => {
   let font;
-  const game = Game(p);
+  const g = Game(p);
   let timeMs = 0;
   let loops = 0
 
+  //Use this to load assets, based on scene
   p.preload = () => {
-    game.load();
+    g.load();
   }
 
   p.setup = () => {
-    const canvasEl = p.createCanvas(CanvasSizeBase, CanvasSizeBase, document.getElementById("POWER4"));
+    const canvasEl = p.createCanvas(ConfigGame.CANVAS_HEIGHT, ConfigGame.CANVAS_WIDTH, document.getElementById("PokeRogueRemix"));
     p.pixelDensity(2);
     canvasEl.canvas.style = "";
-    game.setup();
+    g.setup();
   }
 
   //p.windowResized = () => {
-  //  if (document.getElementById("POWER4")) {
+  //  if (document.getElementById("PokeRogueRemix")) {
   //    p.resizeCanvas(window.innerWidth, window.innerHeight);
   //  }
   //}
 
   p.draw = () => {
-    if (timeMs < FPS_RATE) {
+    if (timeMs < ConfigGame.FPS_RATE) {
       loops++;
       timeMs += p.deltaTime;
       return;
     }
     //console.log("loop", loops); //if loops=0 it means the game run slower than it should
     loops = 0;
+    g.updateAll();
     p.clear();
-    game.updateAll();
-    game.drawAll();
+    g.drawAll();
     timeMs = p.deltaTime;
   }
 

@@ -1,0 +1,257 @@
+:root {
+  --color-base: hsl(0, 0%, 55%);
+  --color-light: hsl(0, 0%, 90%);
+  --color-dark: hsl(0, 0%, 10%);
+}
+
+html {
+  touch-action: none;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #484050;
+}
+
+@media (display-mode: fullscreen) {
+  body {
+    background: #000000;
+  }
+}
+
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#app > div:first-child {
+  transform-origin: center !important;
+}
+
+/*
+  Supports automatic vertical centering as suggested in PR#1114, but only via CSS
+
+  Condition factorized to deduce CSS rules:
+  true if (isLandscape && !isMobile() && !hasTouchscreen() || (hasTouchscreen() && !isTouchControlsEnabled))
+*/
+
+/* isLandscape && !isMobile() && !hasTouchscreen() */
+@media (orientation: landscape) and (pointer: fine) {
+  #app {
+    align-items: center;
+  }
+}
+
+#layout:fullscreen #dpad,
+#layout:fullscreen {
+  bottom: 6rem;
+}
+
+input:-internal-autofill-selected {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+input:-webkit-autofill {
+  -webkit-text-fill-color: #a1a1a1;
+}
+
+/* Need adjust input font-size */
+input {
+  font-size: 3.2rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+input:-internal-autofill-selected {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+
+/* Configuration toolbar */
+
+#configToolbar {
+  width: 100%;
+  position: fixed;
+  top: 1rem;
+  left: 0;
+  z-index: 9;
+  user-select: none;
+}
+
+#configToolbar .column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10%;
+  padding: 0 var(--controls-padding);
+}
+
+#configToolbar .button-row {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+#configToolbar .info-row {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+#configToolbar .button {
+  z-index: 3;
+  background-color: var(--color-base);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 10%;
+  height: var(--small-control-size);
+  font-size: var(--small-control-size);
+  border-radius: 8px;
+  padding: 2px 8px;
+  text-shadow: var(--color-dark) calc(var(--text-shadow-size) / 3)
+    calc(var(--text-shadow-size) / 3);
+}
+
+#configToolbar .button:active {
+  opacity: var(--touch-control-opacity);
+}
+
+#configToolbar .orientation-label {
+  font-size: var(--small-control-size);
+  text-shadow: var(--color-dark) calc(var(--text-shadow-size) / 3)
+    calc(var(--text-shadow-size) / 3);
+}
+
+/* dpad */
+#dpad {
+  z-index: 3;
+  opacity: 0.8;
+}
+
+#dpad svg {
+  width: calc(2 * var(--controls-size));
+  height: calc(2 * var(--controls-size));
+  fill: var(--color-base);
+}
+
+/* apad buttons */
+
+.apad-button {
+  background-color: var(--color-base);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  right: 0;
+  bottom: 0;
+  width: var(--controls-size);
+  height: var(--controls-size);
+  opacity: 0.8;
+  border-radius: 8px;
+}
+
+.apad-small {
+  width: var(--small-control-size);
+  height: var(--small-control-size);
+}
+
+.apad-label {
+  user-select: none;
+  height: 100%;
+  margin-right: -2px;
+}
+
+.apad-small > .apad-label {
+  font-size: var(--small-control-size);
+  text-shadow: var(--color-dark) calc(var(--text-shadow-size) / 3)
+    calc(var(--text-shadow-size) / 3);
+}
+
+.apad-rectangle {
+  text-align: center;
+  width: var(--rect-control-size);
+  height: var(--small-control-size);
+}
+
+.apad-square {
+  width: var(--small-control-size);
+  height: var(--small-control-size);
+}
+
+.apad-circle {
+  width: var(--controls-size);
+  height: var(--controls-size);
+  border-radius: 50%;
+}
+
+/* Defaults:*/
+
+#control-group-dpad {
+  left: var(--controls-padding);
+  bottom: var(--controls-padding);
+}
+
+#control-group-action {
+  right: var(--controls-padding);
+  bottom: var(--controls-size-with-padding);
+}
+
+#control-group-cancel {
+  right: var(--controls-size-with-wide-padding);
+  bottom: var(--controls-padding);
+}
+
+#control-group-extra-1 {
+  right: var(--control-group-extra-1-offset);
+  bottom: var(--control-group-extra-1-offset);
+}
+
+#control-group-extra-2 {
+  width: var(--control-group-extra-wide-size);
+  right: var(--control-group-extra-2-offset);
+  bottom: var(--control-group-extra-2-offset);
+}
+
+/* Layout */
+
+#layout:fullscreen #dpad,
+#layout:fullscreen #apad {
+  bottom: 6rem;
+}
+
+input:-internal-autofill-selected {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+#banner {
+  display: none;
+  position: absolute;
+  top: 33.2%;
+  left: 0;
+  text-align: center;
+  z-index: 1000; /* Ensures the banner is on top of other elements */
+  & > img {
+    opacity: 50%;
+  }
+}
+
+#tnc-links {
+  font-size: xx-small;
+  position: relative;
+}
+
+a {
+  color: #328cea;
+  margin-right: 4px;
+  margin-left: 4px;
+}
