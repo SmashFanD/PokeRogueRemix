@@ -1,6 +1,7 @@
 PokeRogueRemix is a small project that i'm making, using PokeRogue as a base of interest from wich i will use some assets. (code will NOT be copy/pasted)
 
 What will the project contain ?
+
  -Not as much content.
  -Starter Selection.
  -Only Solo battle Mode.
