@@ -41,9 +41,20 @@ What will the project contain ?
  -Pokerus (to not forget), evs will work kinda the same as gen 1 (But need 60000pt to get 60evs for each stats at max).
  
  -Boss each 5 wave instead of 10, faster progression.
+
+ -Daycare check if any pokemon can reproduce and can make multiple eggs per wave.
  
  -Bag to store items.
+
  -items (only usable, or givable in battle, no out of battle item).
+
  -Shop.
+
  -Tokens.
+
  -Saves.
+
+
+Things that may be too hard to implement:
+
+ -PKMN from egg will now also have random ability, learnset, type and base stats base stats that depend on the two parent.
