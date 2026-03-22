@@ -42,7 +42,7 @@ export function Game(p) {
             this.scene = this.newScene;
             switch (this.scene) {
                 case ConfigGame.GameState.MENU_SCENE:
-                this.menuScene.updateMenuScene(this.gameFrame); //should prob call in the child instead
+                this.menuScene.updateMenuScene(); //should prob call in the child instead
                 break;
                 case ConfigGame.GameState.STARTER_SELECT_SCENE:
                 this.starterSelectScene.updateStarterSelectScene();

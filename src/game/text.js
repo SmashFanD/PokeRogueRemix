@@ -1,3 +1,6 @@
+import { TextData } from "../data/text.js";
+import { Text } from "../locale/en.js";
+
 //trainer name, class, if it's an enemy and others things may be in the pokemon class (placeholder for now)
 export function showText(p, pokemon, target, msg, pos, affix) {
   let x = TextData.Base.X;

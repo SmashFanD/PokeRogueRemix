@@ -1,4 +1,4 @@
-import { IMG_BackGround } from ../constant/ui.js
+import { IMG_BackGround } from "../constant/image/ui.js"
 
 export function MenuScene(p) {
     return {
@@ -8,7 +8,7 @@ export function MenuScene(p) {
         menuBoxNewRunImgRef: null,
         load() {
           this.backgroundImgRef = p.loadImage(IMG_BackGround.END);
-        //What does MenuScene need to store ?
+        },
         updateMenuScene() {
 
         },
