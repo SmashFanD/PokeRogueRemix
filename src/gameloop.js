@@ -19,14 +19,15 @@ new p5((p) => {
 
   //Use this to load assets, based on scene
   p.preload = () => {
-    g.load();
+    font = p.loadFont("./font/pokemon-bw.ttf");
+    g.preload();
   }
 
   p.setup = () => {
-    const canvasEl = p.createCanvas(ConfigGame.CANVAS_HEIGHT, ConfigGame.CANVAS_WIDTH, document.getElementById("PokeRogueRemix"));
-    p.pixelDensity(2);
+    const canvasEl = p.createCanvas(ConfigGame.CANVAS_WIDTH, ConfigGame.CANVAS_HEIGHT, document.getElementById("PokeRogueRemix"));
     canvasEl.canvas.style = "";
     g.setup();
+    p.textFont(font);
   }
 
   //p.windowResized = () => {
@@ -44,6 +45,7 @@ new p5((p) => {
     //console.log("loop", loops); //if loops=0 it means the game run slower than it should
     loops = 0;
     g.updateAll();
+    g.playAll();
     p.clear();
     g.drawAll();
     timeMs = p.deltaTime;

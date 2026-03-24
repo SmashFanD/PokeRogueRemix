@@ -1,6 +1,6 @@
-export const ConfigGame = Object.freeze({
+export const ConfigGame = {
   FPS: 60,
-  FPS_RATE: 1000 / ConfigGame.FPS,
+  FPS_RATE: 1000 / 60,
   CANVAS_WIDTH: 1920,
   CANVAS_HEIGHT: 1080,
   GameState: {
@@ -9,8 +9,8 @@ export const ConfigGame = Object.freeze({
     SAVE_SCENE: 2,
     BATTLE_SCENE: 3
   }
-});
-export const ConfigUI = Object.freeze({
+}
+export const ConfigUI = {
   Text: {
     Smallest: 8,
     Smaller: 10,
@@ -29,4 +29,4 @@ export const ConfigUI = Object.freeze({
     Bigger: 6,
     Biggest: 7
   }
-});
+}

@@ -7,11 +7,20 @@ import { BattleScene } from "./battle-scene.js";
 import { SaveScene } from "./save-scene.js";
 import { StarterSelectScene } from "./starter-select-scene.js";
 import { MenuScene } from "./menu-scene.js";
+import { MusicPlayer } from "./music.js";
 
 export function Game(p) {
     return {
         scene: ConfigGame.GameState.MENU_SCENE,
         newScene: ConfigGame.GameState.MENU_SCENE,
+        backgroundMusics: [],
+        musicPlaying: null,
+        musicNext: null,
+        musicPlayer: MusicPlayer(),
+        backgroundImages: [],
+        imageNow: null,
+        imageNext: null,
+        fpsRecorder: FpsRecorder(),
         menuScene: MenuScene(p),
         starterSelectScene: StarterSelectScene(p),
         saveScene: SaveScene(p),
@@ -24,11 +33,16 @@ export function Game(p) {
         },
         gameFrame: 0,
         
-        load() {
+        preload() {
             //base assets loading, used for all the game
+            this.musicPlayer.preload();
+            this.menuScene.preload();
         },
         setup() {
             //probably useless
+        },
+        load() {
+            
         },
         updateMenuScene() {
         },
@@ -60,6 +74,8 @@ export function Game(p) {
             
         },
         drawAll() {
+            //setDrawData(p, [255, 255, 255, 195]);
+            //p.rect(0, 0, 320, 180)
             switch (this.scene) {
                 case ConfigGame.GameState.MENU_SCENE:
                 this.menuScene.drawMenuScene(this.gameFrame); //should prob call in the child instead
@@ -72,6 +88,23 @@ export function Game(p) {
                 break;
                 case ConfigGame.GameState.BATTLE_SCENE:
                 this.battleScene.drawBattleScene();
+                break;
+                default:
+            }
+        },
+        playAll() {
+            switch (this.scene) {
+                case ConfigGame.GameState.MENU_SCENE:
+                this.menuScene.playMenuScene(this.gameFrame); //should prob call in the child instead
+                break;
+                case ConfigGame.GameState.STARTER_SELECT_SCENE:
+                this.starterSelectScene.playStarterSelectScene();
+                break;
+                case ConfigGame.GameState.SAVE_SCENE:
+                this.saveScene.playSaveScene();
+                break;
+                case ConfigGame.GameState.BATTLE_SCENE:
+                this.battleScene.playBattleScene();
                 break;
                 default:
             }

@@ -1,7 +1,7 @@
 import { BrowserWindow, app, Menu } from 'electron';
 
 function createWindow () {
-  const win = new BrowserWindow({ width: 1920, height: 1080 })
+  const win = new BrowserWindow({ width: 960, height: 540 })
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {
       webPreferences: {
@@ -30,4 +30,5 @@ function createWindow () {
   ]))
   win.loadFile('index.html')
 }
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 app.whenReady().then(createWindow);
