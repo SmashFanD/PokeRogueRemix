@@ -5,6 +5,7 @@ export function StarterSelectScene(p) {
         setup() {},
         update() {},
         draw() {},
+        onKey(keyEvent) {},
         updateStarterSelectScene() {
 
         },

@@ -3,10 +3,10 @@ export const TextBoxMenuData = {
     COLOR: [130, 20, 20],
     COLOR_OUTLINE: [185, 80, 80],
     SIZE_OUTLINE: 7,
-    X: 1696,
-    Y: 888,
-    SIZE_X: 220,
-    SIZE_Y: 186,
+    X: 1682,
+    Y: 826, 
+    SIZE_X: 234,
+    SIZE_Y: 248,
 }
 export const TextBoxBattleData = {
     ID: 0,

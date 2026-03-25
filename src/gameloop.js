@@ -108,7 +108,23 @@ new p5((p) => {
     timeMs = p.deltaTime;
   }
 
-  p.keyPressed = (keyEvent) => {}
+  p.keyPressed = (keyEvent) => {
+    switch (scene) {
+        case ConfigGame.GameState.MENU_SCENE:
+            titleScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.STARTER_SELECT_SCENE:
+            starterSelectScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.SAVE_SCENE:
+            saveScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.BATTLE_SCENE:
+            battleScene.onKey(keyEvent);
+            break;
+        default:
+    }
+  }
 
   p.keyReleased = () => {}
 })

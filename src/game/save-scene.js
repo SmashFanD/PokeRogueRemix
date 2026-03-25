@@ -5,6 +5,7 @@ export function SaveScene(p) {
         setup() {},
         update() {},
         draw() {},
+        onKey(keyEvent) {},
         updateSaveScene() {
 
         },

@@ -24,9 +24,9 @@ function MusicPlayer() {
             return await this.sndAudioContext.decodeAudioData(arrayBuffer);
         },
         async playMusic(music) {
-            if (this.bgMusicPlaying === music) return
+            if (this.bgMusicPlaying === music.SRC) return
 
-            this.bgMusicPlaying = music;
+            this.bgMusicPlaying = music.SRC;
 
             if (this.bgAudioSource) {
                 this.bgAudioSource.stop();

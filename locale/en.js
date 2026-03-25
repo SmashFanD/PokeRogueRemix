@@ -10,6 +10,6 @@ export const TextMenuContent = [
     "New Run",
     "Continue",
     "Options",
-    "info"
+    "Info"
 ]
 

@@ -34,7 +34,7 @@ export const TextMenuData = {
     COLOR_OUTLINE: 0,
     SIZE_OUTLINE: 7,
     X: 1738,
-    Y: 936,
+    Y: 878,
     SIZE: 60,
     MAX_CHAR: 60,
     MAX_LINE: 1

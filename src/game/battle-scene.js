@@ -5,6 +5,7 @@ export function BattleScene(p) {
         setup() {},
         update() {},
         draw() {},
+        onKey(keyEvent) {},
         updateBattleScene() {
 
         },

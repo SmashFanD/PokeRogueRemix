@@ -1,9 +1,9 @@
 export const MenuPhase = {
-    TITLE_MENU: 0,
-    OPTIONS: 1,
-    INFO: 2,
-    STARTER_SELECT: 3,
-    SAVE_SELECT: 4
+    TITLE_MENU: -1,
+    NEW_RUN: 0,
+    CONTINUE: 1,
+    OPTIONS: 2,
+    INFO: 3
 }
 export const BattlePhase = {
     WAVE0: 0,
