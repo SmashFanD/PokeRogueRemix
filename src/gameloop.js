@@ -5,6 +5,7 @@ import { StarterSelectScene } from './game/starter-select-scene.js';
 import { BattleScene } from './game/battle-scene.js';
 import { SaveScene } from './game/save-scene.js';
 import { fpsRecorder } from './fps.js';
+import { globalGameData } from './data/global.js';
 //import { savedGameData } from './data/savedGameData.js';
 
 window.addEventListener("keydown", (e) => {
@@ -14,17 +15,6 @@ window.addEventListener("keydown", (e) => {
 }); 
 
 Input.init();
-
-function GlobalGameData() {
-    return {
-      newScene: ConfigGame.GameState.MENU_SCENE,
-      changeScene(scene) {
-        this.newScene = scene
-      }
-    }
-}
-
-export const globalGameData = GlobalGameData()
 
 new p5((p) => {
   let scene = ConfigGame.GameState.MENU_SCENE

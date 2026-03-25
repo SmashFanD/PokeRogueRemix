@@ -13,6 +13,7 @@ import { SND_Background } from "../constant/sound/bgm.js";
 import { TextMenuContent } from "../../locale/en.js";
 import { TextMenuData } from "../data/text.js";
 import { TextBoxMenuData } from "../data/rect.js";
+import { globalGameData } from "../data/global.js";
 
 export function TitleScene(p) {
     return {
@@ -22,7 +23,8 @@ export function TitleScene(p) {
         cursorImg: null,
         cursorVisible: true,
         cursorIndex: 0,
-        keyCooldown: Input.COOLDOWN,
+        cursorOptionIndex: 0,
+        cursorInfoIndex: 0,
         preload() {
             this.bgImg = p.loadImage(IMG_Background.END)
             this.cursorImg = p.loadImage(IMG_UI.CURSOR)
@@ -72,12 +74,67 @@ export function TitleScene(p) {
             for (let id=0; id < TextMenuContent.length; id++) {
                  setText(p, TextMenuContent[id], TextMenuData, id);
             }
-            if (this.cursorVisible) p.image(this.cursorImg, 1694, this.cursorIndex * 68 + 842, 30, 30)
+            if (this.cursorVisible) p.image(this.cursorImg, 1694, this.cursorIndex * 62 + 842, 30, 30)
         },
         //Should depend on last played wave (current)
         onKey(keyEvent) {
-          if (this.phase === MenuPhase.TITLE_MENU && (keyEvent.key === "z" || keyEvent.key === "z")) this.newPhase = this.cursorIndex
-          this.cursorIndex = updateIndexY(this.cursorIndex, TextMenuContent.length, keyEvent)
+          if (keyEvent.key === "z" || keyEvent.key === "Z") {
+            //TODO, Add Options and Info
+            if (this.phase === MenuPhase.TITLE_MENU) {
+              if (this.cursorIndex === MenuPhase.NEW_RUN) {
+                //no need to change the phase, just change the scene
+                this.cleanUp()
+                globalGameData.changeScene(ConfigGame.GameState.STARTER_SELECT_SCENE)
+                return
+              }
+              if (this.cursorIndex === MenuPhase.CONTINUE) {
+                //change the scene give the info Save_Scene is here to Load a run
+                this.cleanUp()
+                globalGameData.changeScene(ConfigGame.GameState.SAVE_SCENE)
+                return
+              }
+              if (this.cursorIndex === MenuPhase.OPTIONS || this.cursorIndex === MenuPhase.INFO) {
+                this.newPhase = this.cursorIndex
+                return
+              }
+            }
+            if (this.phase === MenuPhase.OPTIONS) {
+                //should be a switch if there are more than 3 options
+                if (this.cursorOptionIndex === 0) {
+                
+                }
+                return
+            }
+            if (this.phase === MenuPhase.INFO) {
+                if (this.cursorInfoIndex === 0) {
+                
+                }
+                return
+            }
+          }
+          if (keyEvent.key === "x" || keyEvent.key === "X") {
+            //TODO, Add Options and Info
+            if (this.phase === MenuPhase.OPTIONS || this.phase === MenuPhase.INFO) {
+                this.newPhase = MenuPhase.TITLE_MENU
+                return
+            }
+          }
+          
+          if (this.phase === MenuPhase.TITLE_MENU) {
+            this.cursorIndex = updateIndexY(this.cursorIndex, TextMenuContent.length, keyEvent)
+          }
+          if (this.phase === MenuPhase.OPTIONS) {
+        
+          }
+          if (this.phase === MenuPhase.INFO) {
+
+          }
         },
+        cleanUp() {
+            this.phase = null
+            this.newPhase = MenuPhase.TITLE_MENU
+            this.cursorVisible = true
+            this.cursorIndex = 0
+        }
     };
 }
