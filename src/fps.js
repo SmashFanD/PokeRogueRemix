@@ -1,4 +1,4 @@
-export function FpsRecorder() {
+function FpsRecorder() {
     return {
         fps: 0,
         lastNow: 0,
@@ -14,6 +14,9 @@ export function FpsRecorder() {
                 }
             }
             this.lastNow = now;
-        }
+        },
+        draw() {}
     }
 }
+
+export const fpsRecorder = FpsRecorder()

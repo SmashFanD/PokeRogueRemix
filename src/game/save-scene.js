@@ -1,6 +1,10 @@
 export function SaveScene(p) {
     return {
         id: 0,
+        preload() {},
+        setup() {},
+        update() {},
+        draw() {},
         updateSaveScene() {
 
         },

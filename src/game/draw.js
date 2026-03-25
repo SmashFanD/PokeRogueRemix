@@ -1,4 +1,4 @@
-export function drawTextBox(p, boxStyle) {
+export function drawBox(p, boxStyle) {
     const color = boxStyle.COLOR;
     const colorOutline = boxStyle.COLOR_OUTLINE;
     const sizeOutline = boxStyle.SIZE_OUTLINE;
@@ -95,8 +95,8 @@ export function setDrawData(p, color, stroke, strokeColor) {
 
 //I don't think these will be used but they stay for now
 export function drawRect(p, x, y, length, width) {
-    p.rect(x, y, length, width);
+    p.rect(x, y, length, width)
 }
 export function drawCircle(p, x, y, size) {
-    p.circle(x, y, size);
+    p.circle(x, y, size)
 }
