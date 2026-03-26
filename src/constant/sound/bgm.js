@@ -6,9 +6,9 @@ export const SND_Background = {
         END: 1000,
         LOOP: 20.113
     },
-     BADLAND: {
+     BADLANDS: {
         ID: 0,
-        SRC: "./snd/bgm/badland.mp3",
+        SRC: "./snd/bgm/badlands.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.79
@@ -64,7 +64,7 @@ export const SND_Background = {
     },
     PALKIA_DIALGA: {
         ID: 0,
-        SRC: "./snd/bgm/pal-dia.mp3",
+        SRC: "./snd/bgm/palkia.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
@@ -363,13 +363,13 @@ export const SND_Background = {
         END: 1000,
         LOOP: 17.202
     },
-    ENCOUNTER: {
-        ID: 0,
-        SRC: "",
-        START: 0,
-        END: 1000,
-        LOOP: 17.202
-    },
+    //ENCOUNTER: {
+        //ID: 0,
+        //SRC: "",
+        //START: 0,
+        //END: 1000,
+        //LOOP: 17.202
+    //},
     END: {
         ID: 0,
         SRC: "./snd/bgm/end.mp3",
@@ -531,9 +531,9 @@ export const SND_Background = {
         END: 1000,
         LOOP: 17.202
     },
-    SNOWY: {
+    SNOWY_FOREST: {
         ID: 0,
-        SRC: "./snd/bgm/snowy.mp3",
+        SRC: "./snd/bgm/snowy-forest.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
@@ -575,7 +575,7 @@ export const SND_Background = {
     },
     TITLE_AFT: {
         ID: 0,
-        SRC: "./snd/bgm/title-aft.mp3",
+        SRC: "./snd/bgm/title-afd.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
@@ -610,91 +610,98 @@ export const SND_Background = {
     },
     EVOLUTION: {
         ID: 0,
-        SRC: "./snd/bgm/evo.mp3",
+        SRC: "./snd/bgm/bw/evo.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     EVOLUTION_FANFARE: {
         ID: 0,
-        SRC: "./snd/bgm/evo-ff.mp3",
+        SRC: "./snd/bgm/bw/evo-ff.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     HEAL_BW: {
         ID: 0,
-        SRC: "./snd/bgm/heal-bw.mp3",
+        SRC: "./snd/bgm/bw/heal.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     ITEM_OBTAIN: {
         ID: 0,
-        SRC: "./snd/bgm/item-obtain.mp3",
+        SRC: "./snd/bgm/bw/item-ff.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     LEVEL_UP: {
         ID: 0,
-        SRC: "./snd/bgm/levelup.mp3",
+        SRC: "./snd/bgm/bw/lvlup.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     EVOLUTION_MINOR_FANFARE: {
         ID: 0,
-        SRC: "./snd/bgm/evo-minor-ff.mp3",
+        SRC: "./snd/bgm/bw/evo-minor-ff.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     VICTORY_CHAMP: {
         ID: 0,
-        SRC: "./snd/bgm/victory-champ.mp3",
+        SRC: "./snd/bgm/bw/win-champ.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     VICTORY_GYM: {
         ID: 0,
-        SRC: "./snd/bgm/victory-gym.mp3",
+        SRC: "./snd/bgm/bw/win-gym.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     VICTORY_PLASMA: {
         ID: 1,
-        SRC: "./snd/bgm/victory-plasma.mp3",
+        SRC: "./snd/bgm/bw/win-plasma.mp3",
         START: 0,
         END: 39,
         LOOP: 7
     },
     VICTORY_TRAINER: {
         ID: 0,
-        SRC: "./snd/bgm/victory-trainer.mp3",
+        SRC: "./snd/bgm/bw/win-trainer.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     EVOLUTION_RSE: {
         ID: 0,
-        SRC: "./snd/bgm/evo-rse.mp3",
+        SRC: "./snd/bgm/rse/evo.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     EVOLUTION_FANFARE_RSE: {
         ID: 0,
-        SRC: "./snd/bgm/evo-ff-rse.mp3",
+        SRC: "./snd/bgm/rse/evo-ff.mp3",
         START: 0,
         END: 1000,
         LOOP: 17.202
     },
     LEVEL_UP_RSE: {
         ID: 1,
-        SRC: "./snd/bgm/lvlup-rse.mp3",
+        SRC: "./snd/bgm/rse/lvlup.mp3",
+        START: 0,
+        END: 39,
+        LOOP: 7
+    },
+    VICTORY_RSE: {
+        ID: 1,
+        SRC: "./snd/bgm/rse/win.mp3",
         START: 0,
         END: 39,
         LOOP: 7

@@ -1,15 +1,37 @@
 export const Text = {
-    WILD_APPEARED_ONE: 0,
-    SEND_OUT_PLAYER: 1,
-    SEND_OUT_TRAINER: 2,
-    TRAINER_APPEARED: 3,
-    WHAT_WILL_PKMN_DO: 4,
+    MOVE_INFO: 1,
+    ITEM_INFO: 2,
+    ABILITY_INFO: 3,
+    STATUS_INFO: 4,
+    GAME_INFO: 5,
+
+    WILD_APPEARED_ONE: 6,
+    SEND_OUT_PLAYER: 7,
+    SEND_OUT_TRAINER: 8,
+    TRAINER_APPEARED: 8,
+    WHAT_WILL_PKMN_DO: 9,
 }
 
-export const TextMenuContent = [
+export const TextTitleContent = [
     "New Run",
     "Continue",
+    "Menu"
+]
+
+export const TextMenuContent = [
     "Options",
-    "Info"
+    "Move",
+    "Item",
+    "Ability",
+    "Status",
+    "Game"
+]
+export const TextMenuContentDesc = [
+    "Show the options",
+    "Some Moves effects may have changed, learn more about them here!",
+    "Item",
+    "Ability",
+    "Status",
+    "Game"
 ]
 

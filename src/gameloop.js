@@ -6,6 +6,7 @@ import { BattleScene } from './game/battle-scene.js';
 import { SaveScene } from './game/save-scene.js';
 import { fpsRecorder } from './fps.js';
 import { globalGameData } from './data/global.js';
+import { musicPlayer } from './game/music.js';
 //import { savedGameData } from './data/savedGameData.js';
 
 window.addEventListener("keydown", (e) => {

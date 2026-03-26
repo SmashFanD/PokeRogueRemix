@@ -1,5 +1,6 @@
-import { TextData } from "../data/text.js";
-import { Text } from "../locale/en.js";
+import { TextBattleData } from "../data/text.js";
+import { Text } from "../../locale/en.js";
+import { setText } from "./draw.js";
 
 //trainer name, class, if it's an enemy and others things may be in the pokemon class (placeholder for now)
 export function showText(p, pokemon, target, msg, pos, affix) {
@@ -38,4 +39,35 @@ export function showText(p, pokemon, target, msg, pos, affix) {
 
 function getNameWithAffix(pokemon) {
   return `Wild ${pokemon.name}`;
+}
+
+export function showModifiedText(p, msg) {
+  switch (msg) {
+    case Text.MOVE_INFO:
+    case Text.ITEM_INFO:
+    case Text.STATUS_INFO:
+    case Text.ABILITY_INFO:
+    case Text.GAME_INFO:
+      let replace
+      if (msg === Text.MOVE_INFO) replace = `Some Moves Effects`
+      else if (msg === Text.STATUS_INFO) replace = `Some Status Effects`
+      else if (msg === Text.ITEM_INFO) replace = `Some Items Effects`
+      else if (msg === Text.ABILITY_INFO) replace = `Some Abilities Effects`
+      else replace = `Some Mechanics from PokeRogue`
+      setText(p, `${replace}` + ` may have changed, learn more about them here!`, TextBattleData);
+      break;
+    case Text.SEND_OUT_PLAYER:
+      drawText(p, `${pkmnName}, Go!`, x, y, size);
+      break;
+    case Text.SEND_OUT_TRAINER:
+      drawText(p, `${pokemon.trainer.name} sent out ${pkmnName}!`, x, y, size);
+      break;
+    case Text.TRAINER_APPEARED:
+      drawText(p, `${pokemon.trainer.name} would like to battle!`, x, y, size);
+      break;
+    case Text.WHAT_WILL_PKMN_DO:
+      drawText(p, `What will ${pkmnName} do?`, x, y, size);
+      break;
+      default:
+  }
 }

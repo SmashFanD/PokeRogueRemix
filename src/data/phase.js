@@ -2,8 +2,11 @@ export const MenuPhase = {
     TITLE_MENU: -1,
     NEW_RUN: 0,
     CONTINUE: 1,
-    OPTIONS: 2,
-    INFO: 3
+    MENU: 2,
+    INFO: 3,
+    OPTIONS: 10,
+    SOUND: 100,
+
 }
 export const BattlePhase = {
     WAVE0: 0,

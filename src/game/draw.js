@@ -1,3 +1,4 @@
+import { TextBattleLogData, TextBattleData, TextTitleData, TextMenuData } from '../data/text.js';
 export function drawBox(p, boxStyle) {
     const color = boxStyle.COLOR;
     const colorOutline = boxStyle.COLOR_OUTLINE;
@@ -10,8 +11,6 @@ export function drawBox(p, boxStyle) {
     deleteCachedBox(boxStyle);
     p.rect(posX, posY, sizeX, sizeY);          
 }
-import { TextBattleLogData, TextBattleData, TextMenuData } from '../data/text.js';
-
 export function setText(p, content, style, msgIndex) {
     //We want to store a number of lines to be displayed in BattleLog, like Showdown does ?
     if (style === TextBattleData) updateBattleLogText(content);
@@ -27,7 +26,7 @@ export function setText(p, content, style, msgIndex) {
     setDrawData(p, color, sizeOutline, colorOutline);
     deleteCachedMsg(style); //For later?
     if (content.length <= maxCharLine) {
-        if (style === TextMenuData) {
+        if (style === TextTitleData || style === TextMenuData) {
             drawText(p, content, posX, posY + msgIndex * size, size);
             return;
         }
@@ -38,16 +37,32 @@ export function setText(p, content, style, msgIndex) {
         drawText(p, content, posX, posY + msgIndex * size, size);
         return;
     }
-    const lineLength = (content.length / 2 + 1);
-    const lines = [];
-    for (let i = 0; i < content.length; i += lineLength) {
-        lines.push(content.slice(i, i + lineLength));
-    }
+    const lines = wordWrap(content, Math.floor(content.length / 2 - 1));
     const displayLines = lines.slice(0, 2);
 
     displayLines.forEach((line, index) => {
         drawText(p, line, posX + index * 12 , posY + index * size, size);
     });
+}
+function wordWrap(text, maxWidth) {
+    const words = text.split(' ')
+    const lines = []
+    let currentLine = ''
+    let lastLineWordLenght = 0
+
+    for (const word of words) {
+        currentLine = currentLine ? `${currentLine} ${word}` : word
+
+        if (currentLine.length >= maxWidth) {
+            if (currentLine) {
+                lines.push(currentLine)
+
+            }
+            currentLine = ""
+        }
+    }
+    if (currentLine) lines.push(currentLine)
+    return lines
 }
 export function updateBattleLogText(line) {
     //if (GlobalData.BATTLE_LOG.lenght >= TextBattleLogData.MAX_LINE) remove first item in array

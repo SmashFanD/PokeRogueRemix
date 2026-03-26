@@ -1,66 +1,62 @@
+import { SND_Background } from "../constant/sound/bgm.js";
+
 function MusicPlayer() {
-    return {
-        bgMusicPlaying: null,
-        bgAudioContext: null,
-        bgAudioBuffer: null,
-        bgAudioSource: null,
-        bgmForceSelected: false,
-        bgmForceOff: [],
-        sndAudioBuffer: null,
-        sndbgAudioSource: null,
-        sndAudioContext: null,
-        async loadBgAudioBuffer(src) {
-            if (!this.bgAudioContext) {
-                this.bgAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            const response = await fetch(src);
-            const arrayBuffer = await response.arrayBuffer();
-            return await this.bgAudioContext.decodeAudioData(arrayBuffer);
-        },
-        async loadSndAudioBuffer(src) {
-            if (!this.sndAudioContext) {
-                this.sndAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            const response = await fetch(src);
-            const arrayBuffer = await response.arrayBuffer();
-            return await this.sndAudioContext.decodeAudioData(arrayBuffer);
-        },
-        async playMusic(music) {
-            if (this.bgMusicPlaying === music.SRC || this.bgmForceSelected || this.bgmForceOff.includes(music.src)) return
+    this.bgAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    this.sndAudioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-            this.bgMusicPlaying = music.SRC;
+    this.bgAudioBuffers = new Map();
+    this.sndAudioBuffer = new Map();
 
-            if (this.bgAudioSource) {
-                this.bgAudioSource.stop();
-                this.bgAudioSource = null;
-            }
+    this.bgMusicPlaying = null;
+    this.bgAudioSource = null;
+    this.bgmForceSelected = false;
+    this.bgmForceOff = [];
 
-            this.bgAudioBuffer = await this.loadBgAudioBuffer(music.SRC);
-            this.bgAudioSource = this.bgAudioContext.createBufferSource();
-            this.bgAudioSource.buffer = this.bgAudioBuffer;
-            this.bgAudioSource.connect(this.bgAudioContext.destination);
-            this.bgAudioSource.loop = true;
-            this.bgAudioSource.loopStart = music.LOOP;
-            this.bgAudioSource.loopEnd = music.END;
-
-            this.bgAudioSource.start(0, music.START);
-        },
-        async playSound(snd) {
-            //work on this later
-            if (this.sndAudioSource) {
-                this.sndAudioSource.stop();
-                this.sndAudioSource = null;
-            }
-
-            this.sndAudioBuffer = await this.loadSndAudioBuffer(snd.SRC);
-            this.sndAudioSource = this.sndAudioContext.createBufferSource();
-            this.sndAudioSource.buffer = this.sndAudioBuffer;
-            this.sndAudioSource.connect(this.sndAudioContext.destination);
-            this.sndAudioSource.loop = false;
-
-            this.sndAudioSource.start(0, 0);
-        },
-    }
+    this.sndAudioSource = null;
 }
 
-export const musicPlayer = MusicPlayer();
+MusicPlayer.prototype = {
+    async playMusic(music) {
+        const src = music.SRC;
+        console.log(this.bgMusicPlaying, this.bgmForceSelected, this.bgmForceOff.includes(src), music)
+        if (this.bgMusicPlaying === src || this.bgmForceSelected || this.bgmForceOff.includes(src)) return;
+
+        if (this.bgAudioBuffers && this.bgMusicPlaying) this.bgAudioBuffers.delete(this.bgMusicPlaying)
+        this.bgMusicPlaying = src;
+
+        if (this.bgAudioSource) {
+            this.bgAudioSource.stop();
+            this.bgAudioSource = null;
+        }
+
+        let audioBuffer = this.bgAudioBuffers.get(src);
+        console.log(audioBuffer)
+        if (!audioBuffer) {
+            audioBuffer = await this.loadBgAudioBuffer(src);
+            this.bgAudioBuffers.set(src, audioBuffer);
+        }
+
+        this.bgAudioSource = this.bgAudioContext.createBufferSource();
+        this.bgAudioSource.buffer = audioBuffer;
+        this.bgAudioSource.connect(this.bgAudioContext.destination);
+        this.bgAudioSource.loop = true;
+        this.bgAudioSource.loopStart = music.LOOP;
+        this.bgAudioSource.loopEnd = music.END;
+        this.bgAudioSource.start(0, music.START);
+        console.log(this.bgAudioContext.state)
+    },
+
+    async loadBgAudioBuffer(src) {
+        const response = await fetch(src);
+        const arrayBuffer = await response.arrayBuffer();
+        return await this.bgAudioContext.decodeAudioData(arrayBuffer);
+    },
+
+    async loadSndAudioBuffer(src) {
+        const response = await fetch(src);
+        const arrayBuffer = await response.arrayBuffer();
+        return await this.sndAudioContext.decodeAudioData(arrayBuffer);
+    }
+};
+
+export const musicPlayer = new MusicPlayer();

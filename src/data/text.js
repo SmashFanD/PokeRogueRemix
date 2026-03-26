@@ -28,13 +28,26 @@ export const TextPartyMenuBottomData = {
     SIZE: 90
 };
 
-export const TextMenuData = {
+export const TextTitleData = {
     ID: 3,
     COLOR: 255,
     COLOR_OUTLINE: 0,
     SIZE_OUTLINE: 7,
     X: 1738,
-    Y: 878,
+    Y: 938,
+    SIZE: 60,
+    MAX_CHAR: 60,
+    MAX_LINE: 1
+}
+export const TextMenuData = {
+    ID: 3,
+    COLOR: 255,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 7,
+    X: 1756,
+    Y: 60,
+    //X+18
+    //Y-878
     SIZE: 60,
     MAX_CHAR: 60,
     MAX_LINE: 1

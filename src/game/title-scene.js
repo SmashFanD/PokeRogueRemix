@@ -10,10 +10,11 @@ import { musicPlayer } from "./music.js";
 import { IMG_Background, IMG_UI } from "../constant/image/ui.js";
 import { MenuPhase } from "../data/phase.js";
 import { SND_Background } from "../constant/sound/bgm.js";
-import { TextMenuContent } from "../../locale/en.js";
-import { TextMenuData } from "../data/text.js";
-import { TextBoxMenuData } from "../data/rect.js";
+import { TextMenuContent, TextTitleContent } from "../../locale/en.js";
+import { TextBattleData, TextMenuData, TextTitleData } from "../data/text.js";
+import { TextBoxBattleData, TextBoxMenuData, TextBoxTitleData } from "../data/rect.js";
 import { globalGameData } from "../data/global.js";
+import { showModifiedText } from "./text.js";
 
 export function TitleScene(p) {
     return {
@@ -25,6 +26,7 @@ export function TitleScene(p) {
         cursorIndex: 0,
         cursorOptionIndex: 0,
         cursorInfoIndex: 0,
+        cursorMenuIndex: 0,
         preload() {
             this.bgImg = p.loadImage(IMG_Background.END)
             this.cursorImg = p.loadImage(IMG_UI.CURSOR)
@@ -49,7 +51,7 @@ export function TitleScene(p) {
                 //    return
                 //}
 
-                //this.cursorIndex = updateIndexY(this.cursorIndex, TextMenuContent.length)
+                //this.cursorIndex = updateIndexY(this.cursorIndex, TextTitleContent.length)
                 //console.log(this.cursorIndex)
             }
         },
@@ -60,24 +62,47 @@ export function TitleScene(p) {
             //else if (this.scene === ConfigGame.GameState.STARTER_SELECT_SCENE) drawBox(p, BgBoxGreen)
 
             //UI
-            //BattleBoxExemple
-            //drawTextBox(p, TextBoxBattleData);
-            //setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (Fr Fr)", TextBattleData);
-        
             //BattleLogExemple
             //for (let i=0; i <= 16; i++) {
             //    setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (Fr Fr)", TextBattleLogData, i);
             //}
 
             //MenuUIBoxExemple
-            drawBox(p, TextBoxMenuData);
-            for (let id=0; id < TextMenuContent.length; id++) {
-                 setText(p, TextMenuContent[id], TextMenuData, id);
+            if (this.phase === MenuPhase.TITLE_MENU) {
+              drawBox(p, TextBoxTitleData);
+              for (let id=0; id < TextTitleContent.length; id++) {
+                 setText(p, TextTitleContent[id], TextTitleData, id)
+              }
+              p.image(this.cursorImg, 1694, this.cursorIndex * 62 + 902, 30, 30)
+              //return
             }
-            if (this.cursorVisible) p.image(this.cursorImg, 1694, this.cursorIndex * 62 + 842, 30, 30)
+            if (this.phase === MenuPhase.MENU) {
+              drawBox(p, TextBoxMenuData);
+              for (let id=0; id < TextMenuContent.length; id++) {
+                 setText(p, TextMenuContent[id], TextMenuData, id)
+              }
+              if (this.cursorMenuIndex > 0) {
+                drawBox(p, TextBoxBattleData)
+                showModifiedText(p, this.cursorMenuIndex)
+
+              }
+              p.image(this.cursorImg, 1712, this.cursorMenuIndex * 62 + 24, 30, 30)
+            }
+            //BattleBoxExemple
+            //drawBox(p, TextBoxBattleData);
+            //setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (For Real, For Real)", TextBattleData);
+        
         },
         //Should depend on last played wave (current)
         onKey(keyEvent) {
+          if (keyEvent.key === "enter") {
+            if (this.phase !== MenuPhase.MENU) {
+              this.newPhase = MenuPhase.MENU
+            } else {
+              this.newPhase = MenuPhase.TITLE_MENU
+            }
+            return
+          }
           if (keyEvent.key === "z" || keyEvent.key === "Z") {
             //TODO, Add Options and Info
             if (this.phase === MenuPhase.TITLE_MENU) {
@@ -93,10 +118,17 @@ export function TitleScene(p) {
                 globalGameData.changeScene(ConfigGame.GameState.SAVE_SCENE)
                 return
               }
-              if (this.cursorIndex === MenuPhase.OPTIONS || this.cursorIndex === MenuPhase.INFO) {
+              if (this.cursorIndex === MenuPhase.MENU || this.cursorIndex === MenuPhase.INFO) {
                 this.newPhase = this.cursorIndex
                 return
               }
+            }
+            if (this.phase === MenuPhase.MENU) {
+                //should be a switch if there are more than 3 options
+                if (this.cursorMenuIndex === 0) {
+                
+                }
+                return
             }
             if (this.phase === MenuPhase.OPTIONS) {
                 //should be a switch if there are more than 3 options
@@ -114,20 +146,31 @@ export function TitleScene(p) {
           }
           if (keyEvent.key === "x" || keyEvent.key === "X") {
             //TODO, Add Options and Info
-            if (this.phase === MenuPhase.OPTIONS || this.phase === MenuPhase.INFO) {
+            if (this.phase === MenuPhase.MENU || this.phase === MenuPhase.INFO ) {
                 this.newPhase = MenuPhase.TITLE_MENU
+                return
+            }
+            if (this.phase === MenuPhase.OPTIONS) {
+                this.newPhase = MenuPhase.MENU
+                return
+            }
+            if (this.phase === MenuPhase.SOUND) {
+                this.newPhase = MenuPhase.OPTION
                 return
             }
           }
           
           if (this.phase === MenuPhase.TITLE_MENU) {
-            this.cursorIndex = updateIndexY(this.cursorIndex, TextMenuContent.length, keyEvent)
+            this.cursorIndex = updateIndexY(this.cursorIndex, TextTitleContent.length, keyEvent)
           }
-          if (this.phase === MenuPhase.OPTIONS) {
-        
+          if (this.phase === MenuPhase.MENU) {
+            this.cursorMenuIndex = updateIndexY(this.cursorMenuIndex, TextMenuContent.length, keyEvent)
           }
           if (this.phase === MenuPhase.INFO) {
-
+            this.cursorInfoIndex = updateIndexY(this.cursorInfoIndex, TextInfoContent.length, keyEvent)
+          }
+          if (this.phase === MenuPhase.OPTIONS) {
+            this.cursorOptionIndex = updateIndexY(this.cursorOptionIndex, TextOptionContent.length, keyEvent)
           }
         },
         cleanUp() {
@@ -135,6 +178,9 @@ export function TitleScene(p) {
             this.newPhase = MenuPhase.TITLE_MENU
             this.cursorVisible = true
             this.cursorIndex = 0
+            this.cursorOptionIndex = 0
+            this.cursorMenuIndex = 0
+            this.cursorInfoIndex = 0
         }
     };
 }
