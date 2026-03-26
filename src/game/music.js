@@ -4,6 +4,8 @@ function MusicPlayer() {
         bgAudioContext: null,
         bgAudioBuffer: null,
         bgAudioSource: null,
+        bgmForceSelected: false,
+        bgmForceOff: [],
         sndAudioBuffer: null,
         sndbgAudioSource: null,
         sndAudioContext: null,
@@ -24,7 +26,7 @@ function MusicPlayer() {
             return await this.sndAudioContext.decodeAudioData(arrayBuffer);
         },
         async playMusic(music) {
-            if (this.bgMusicPlaying === music.SRC) return
+            if (this.bgMusicPlaying === music.SRC || this.bgmForceSelected || this.bgmForceOff.includes(music.src)) return
 
             this.bgMusicPlaying = music.SRC;
 
