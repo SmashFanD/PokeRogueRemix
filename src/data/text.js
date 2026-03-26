@@ -52,6 +52,40 @@ export const TextMenuData = {
     MAX_CHAR: 60,
     MAX_LINE: 1
 }
+export const TextOptionTopData = {
+    ID: 3,
+    COLOR: 255,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 9,
+    X: 66,
+    Y: 96,
+    SIZE: 96,
+    MAX_CHAR: 60,
+    MAX_LINE: 1
+}
+export const TextOptionLeftData = {
+    COLOR: 255,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 8,
+    X: 60,
+    Y: 192,
+    SIZE: 76,
+    MAX_CHAR: 60,
+    MAX_LINE: 1
+}
+export const TextOptionRightData = {
+    ID: 3,
+    COLOR: 255,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 7,
+    X: 600,
+    Y: 192,
+    //X+18
+    //Y-878
+    SIZE: 60,
+    MAX_CHAR: 60,
+    MAX_LINE: 1
+}
 export const TextBattleLogData = {
     ID: 4,
     COLOR: 255,

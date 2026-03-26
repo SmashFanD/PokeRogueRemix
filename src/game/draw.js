@@ -14,6 +14,7 @@ export function drawBox(p, boxStyle) {
 export function setText(p, content, style, msgIndex) {
     //We want to store a number of lines to be displayed in BattleLog, like Showdown does ?
     if (style === TextBattleData) updateBattleLogText(content);
+    if (!msgIndex) msgIndex = 0
 
     const color = style.COLOR;
     const colorOutline = style.COLOR_OUTLINE;
@@ -22,18 +23,11 @@ export function setText(p, content, style, msgIndex) {
     const posY = style.Y;
     const size = style.SIZE;
     const maxCharLine = style.MAX_CHAR || 10000;
+    const align = style.CENTER ? p.CENTER : false;
 
     setDrawData(p, color, sizeOutline, colorOutline);
     deleteCachedMsg(style); //For later?
     if (content.length <= maxCharLine) {
-        if (style === TextTitleData || style === TextMenuData) {
-            drawText(p, content, posX, posY + msgIndex * size, size);
-            return;
-        }
-        if (style !== TextBattleLogData) {
-            drawText(p, content, posX, posY, size);
-            return;
-        }
         drawText(p, content, posX, posY + msgIndex * size, size);
         return;
     }
@@ -41,7 +35,7 @@ export function setText(p, content, style, msgIndex) {
     const displayLines = lines.slice(0, 2);
 
     displayLines.forEach((line, index) => {
-        drawText(p, line, posX + index * 12 , posY + index * size, size);
+        drawText(p, line, posX + index * 12 , posY + index * size, size, align);
     });
 }
 function wordWrap(text, maxWidth) {

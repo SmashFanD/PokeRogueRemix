@@ -26,6 +26,13 @@ export const TextMenuContent = [
     "Status",
     "Game"
 ]
+export const TextOptionTopContent = [
+    "SOUND"
+]
+export const TextOptionLeftContent = [
+    "BGM To Play",
+    "BGM keep Playing"
+]
 export const TextMenuContentDesc = [
     "Show the options",
     "Some Moves effects may have changed, learn more about them here!",

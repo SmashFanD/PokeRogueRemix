@@ -8,11 +8,11 @@ import { SaveScene } from "./save-scene.js";
 import { StarterSelectScene } from "./starter-select-scene.js";
 import { musicPlayer } from "./music.js";
 import { IMG_Background, IMG_UI } from "../constant/image/ui.js";
-import { MenuPhase } from "../data/phase.js";
+import { MENU_PHASE_MENU_START, MenuPhase } from "../data/phase.js";
 import { SND_Background } from "../constant/sound/bgm.js";
-import { TextMenuContent, TextTitleContent } from "../../locale/en.js";
-import { TextBattleData, TextMenuData, TextTitleData } from "../data/text.js";
-import { TextBoxBattleData, TextBoxMenuData, TextBoxTitleData } from "../data/rect.js";
+import { TextMenuContent, TextOptionLeftContent, TextOptionTopContent, TextTitleContent } from "../../locale/en.js";
+import { TextBattleData, TextMenuData, TextOptionLeftData, TextOptionRightData, TextOptionTopData, TextTitleData } from "../data/text.js";
+import { TextBoxBattleData, TextBoxMenuData, TextBoxOptionData, TextBoxTitleData } from "../data/rect.js";
 import { globalGameData } from "../data/global.js";
 import { showModifiedText } from "./text.js";
 
@@ -27,6 +27,8 @@ export function TitleScene(p) {
         cursorOptionIndex: 0,
         cursorInfoIndex: 0,
         cursorMenuIndex: 0,
+        selectedMusic: SND_Background.END,
+        bgmForced: false,
         preload() {
             this.bgImg = p.loadImage(IMG_Background.END)
             this.cursorImg = p.loadImage(IMG_UI.CURSOR)
@@ -74,7 +76,7 @@ export function TitleScene(p) {
                  setText(p, TextTitleContent[id], TextTitleData, id)
               }
               p.image(this.cursorImg, 1694, this.cursorIndex * 62 + 902, 30, 30)
-              //return
+              return
             }
             if (this.phase === MenuPhase.MENU) {
               drawBox(p, TextBoxMenuData);
@@ -87,7 +89,24 @@ export function TitleScene(p) {
 
               }
               p.image(this.cursorImg, 1712, this.cursorMenuIndex * 62 + 24, 30, 30)
+              return
             }
+            if (this.phase === MenuPhase.OPTIONS) {
+              drawBox(p, TextBoxOptionData);
+              for (let id = 0; id < TextOptionTopContent.length; id++) {
+                 setText(p, TextOptionTopContent[id], TextOptionTopData, id)
+              }
+              const musicPlay = `The BGM playing will be: ${this.selectedMusic.NAME}`
+              for (let id = 0; id < TextOptionLeftContent.length; id++) {
+                 if (id === 0) setText(p, musicPlay, this.bgmForced ? TextOptionLeftData : TextOptionLeftData, id) //make it darker if can't change
+                 if (id === 1) setText(p, this.bgmForced ? "BGM will not change!" : "BGM can change!", TextOptionLeftData, id)
+              }
+              
+              
+              p.image(this.cursorImg, 16, this.cursorOptionIndex * 62 + 152, 30, 30)
+              return
+            }
+
             //BattleBoxExemple
             //drawBox(p, TextBoxBattleData);
             //setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (For Real, For Real)", TextBattleData);
@@ -124,10 +143,7 @@ export function TitleScene(p) {
               }
             }
             if (this.phase === MenuPhase.MENU) {
-                //should be a switch if there are more than 3 options
-                if (this.cursorMenuIndex === 0) {
-                
-                }
+                this.newPhase = this.cursorMenuIndex + MENU_PHASE_MENU_START;
                 return
             }
             if (this.phase === MenuPhase.OPTIONS) {

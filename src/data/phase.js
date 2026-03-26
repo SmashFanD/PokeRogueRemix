@@ -5,9 +5,16 @@ export const MenuPhase = {
     MENU: 2,
     INFO: 3,
     OPTIONS: 10,
-    SOUND: 100,
+    MOVE: 11,
+    ITEM: 12,
+    ABILITY: 13,
+    STATUS: 14,
+    GAME: 15,
+    SOUND: 20,
 
 }
+export const MENU_PHASE_MENU_START = 10;
+export const MENU_PHASE_OPTIONS_START = 20;
 export const BattlePhase = {
     WAVE0: 0,
     WAVE_START: 1, //Retrieve necessary wave data and make pokemon appear

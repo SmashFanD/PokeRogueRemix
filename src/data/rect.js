@@ -20,6 +20,18 @@ export const TextBoxMenuData = {
     //Y MAX = 1068
     //X MAX = 1912
 }
+export const TextBoxOptionData = {
+    ID: 3,
+    COLOR: [130, 20, 20],
+    COLOR_OUTLINE: [185, 80, 80],
+    SIZE_OUTLINE: 7,
+    X: 6,
+    Y: 6, 
+    SIZE_X: 1908,
+    SIZE_Y: 1068,
+    //Y MAX = 1068
+    //X MAX = 1912
+}
 
 export const TextBoxBattleData = {
     ID: 0,
