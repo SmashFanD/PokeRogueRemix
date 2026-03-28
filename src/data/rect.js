@@ -70,11 +70,21 @@ export const BgBoxNormal = {
     SIZE_X: 1920,
     SIZE_Y: 1080,
 }
-
 export const BgBoxGreen = {
     COLOR: [25, 135, 25],
-    X: 0,
-    Y: 0,
-    SIZE_X: 1920,
-    SIZE_Y: 1080,
+    COLOR_OUTLINE: [30, 90, 30],
+    SIZE_OUTLINE: 7,
+    X: 4,
+    Y: 4, 
+    SIZE_X: 1912,
+    SIZE_Y: 1072,
+}
+export const BgBoxGreenTop = {
+    COLOR: [20, 95, 20],
+    COLOR_OUTLINE: [185, 80, 80],
+    SIZE_OUTLINE: 7,
+    X: 6,
+    Y: 6,
+    SIZE_X: 110,
+    SIZE_Y: 1068,
 }

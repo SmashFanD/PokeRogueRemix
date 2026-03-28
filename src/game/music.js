@@ -11,6 +11,7 @@ function MusicPlayer() {
     this.bgAudioSource = null;
     this.bgmForceSelected = false;
     this.bgmForceOff = [];
+    this.bgLoadPromise = Promise.resolve();
 
     this.sndAudioSource = null;
 }
@@ -18,11 +19,9 @@ function MusicPlayer() {
 MusicPlayer.prototype = {
     async playMusic(music) {
         const src = music.SRC;
-        console.log(this.bgMusicPlaying, this.bgmForceSelected, this.bgmForceOff.includes(src), music)
-        if (this.bgMusicPlaying === src || this.bgmForceSelected || this.bgmForceOff.includes(src)) return;
+        if (this.bgMusicPlaying === src || (this.bgmForceSelected && this.bgMusicPlaying) || this.bgmForceOff.includes(src)) return;
 
-        if (this.bgAudioBuffers && this.bgMusicPlaying) this.bgAudioBuffers.delete(this.bgMusicPlaying)
-        this.bgMusicPlaying = src;
+        await this.bgLoadPromise;
 
         if (this.bgAudioSource) {
             this.bgAudioSource.stop();
@@ -30,12 +29,13 @@ MusicPlayer.prototype = {
         }
 
         let audioBuffer = this.bgAudioBuffers.get(src);
-        console.log(audioBuffer)
         if (!audioBuffer) {
-            audioBuffer = await this.loadBgAudioBuffer(src);
+            this.bgLoadPromise = this.loadBgAudioBuffer(src);
+            audioBuffer = await this.bgLoadPromise;
             this.bgAudioBuffers.set(src, audioBuffer);
         }
 
+        this.bgMusicPlaying = src;
         this.bgAudioSource = this.bgAudioContext.createBufferSource();
         this.bgAudioSource.buffer = audioBuffer;
         this.bgAudioSource.connect(this.bgAudioContext.destination);
@@ -43,7 +43,6 @@ MusicPlayer.prototype = {
         this.bgAudioSource.loopStart = music.LOOP;
         this.bgAudioSource.loopEnd = music.END;
         this.bgAudioSource.start(0, music.START);
-        console.log(this.bgAudioContext.state)
     },
 
     async loadBgAudioBuffer(src) {

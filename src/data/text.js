@@ -70,11 +70,8 @@ export const TextOptionLeftData = {
     X: 60,
     Y: 192,
     SIZE: 76,
-    MAX_CHAR: 60,
-    MAX_LINE: 1
 }
 export const TextOptionRightData = {
-    ID: 3,
     COLOR: 255,
     COLOR_OUTLINE: 0,
     SIZE_OUTLINE: 7,
@@ -83,9 +80,24 @@ export const TextOptionRightData = {
     //X+18
     //Y-878
     SIZE: 60,
-    MAX_CHAR: 60,
-    MAX_LINE: 1
 }
+export const TextOptionLeftGrayData = {
+    COLOR: 40,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 8,
+    X: 60,
+    Y: 192,
+    SIZE: 76,
+}
+export const TextStarterSelectGenData = {
+    COLOR: 255,
+    COLOR_OUTLINE: 0,
+    SIZE_OUTLINE: 7,
+    X: 40,
+    Y: 58,
+    SIZE: 56,
+}
+
 export const TextBattleLogData = {
     ID: 4,
     COLOR: 255,

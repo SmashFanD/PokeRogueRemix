@@ -8,7 +8,8 @@ export const ConfigGame = {
     STARTER_SELECT_SCENE: 1,
     SAVE_SCENE: 2,
     BATTLE_SCENE: 3
-  }
+  },
+  PAUSE: false
 }
 export const ConfigUI = {
   Text: {

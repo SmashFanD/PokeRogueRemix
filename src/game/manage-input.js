@@ -25,3 +25,10 @@ export function updateIndexY(yIndex, yLength, keyEvent) {
     if (keyEvent.key === 'ArrowDown') dy += 1
     return (yIndex + dy + yLength) % yLength
 }
+export function updateIndexX(xIndex, xLength, keyEvent) {
+    let dx = 0
+    console.log(xIndex, xLength)
+    if (keyEvent.key === 'ArrowLeft') dx -= 1
+    if (keyEvent.key === 'ArrowRight') dx += 1
+    return (xIndex + dx + xLength) % xLength
+}

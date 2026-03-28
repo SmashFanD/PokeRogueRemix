@@ -4,4 +4,5 @@ export const IMG_Background = {
 
 export const IMG_UI = {
     CURSOR: "./image/ui/cursor.png",
+    SELECTOR: "./image/ui/selector.png",
 }

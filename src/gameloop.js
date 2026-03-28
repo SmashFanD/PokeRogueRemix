@@ -27,7 +27,6 @@ new p5((p) => {
   let timeMs = 0;
   let loops = 0
 
-  //Use this to load assets, based on scene
   p.preload = () => {
     font = p.loadFont("./font/pokemon-bw.ttf")
     titleScene.preload()
@@ -35,7 +34,7 @@ new p5((p) => {
     saveScene.preload()
     battleScene.preload()
   }
-
+  //Setup values that do not change here
   p.setup = () => {
     const canvasEl = p.createCanvas(ConfigGame.CANVAS_WIDTH, ConfigGame.CANVAS_HEIGHT, document.getElementById("PokeRogueRemix"));
     canvasEl.canvas.style = "";
@@ -45,15 +44,8 @@ new p5((p) => {
     saveScene.setup()
     battleScene.setup()
   }
-
-  //p.windowResized = () => {
-  //  if (document.getElementById("PokeRogueRemix")) {
-  //    p.resizeCanvas(window.innerWidth, window.innerHeight);
-  //  }
-  //}
-
   p.draw = () => {
-    if (timeMs < ConfigGame.FPS_RATE) {
+    if (timeMs < ConfigGame.FPS_RATE || ConfigGame.PAUSE) {
       loops++;
       timeMs += p.deltaTime;
       return;
@@ -96,10 +88,12 @@ new p5((p) => {
     }
     fpsRecorder.update()
     //fpsRecorder.draw()
+    //console.log(fpsRecorder.fps)
     timeMs = p.deltaTime;
   }
 
   p.keyPressed = (keyEvent) => {
+    if (keyEvent.key === "p" || keyEvent.key === "P") ConfigGame.PAUSE = !ConfigGame.PAUSE
     switch (scene) {
         case ConfigGame.GameState.MENU_SCENE:
             titleScene.onKey(keyEvent);
