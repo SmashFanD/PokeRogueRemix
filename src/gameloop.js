@@ -44,6 +44,7 @@ new p5((p) => {
     saveScene.setup()
     battleScene.setup()
   }
+  //This is where the actual game run
   p.draw = () => {
     if (timeMs < ConfigGame.FPS_RATE || ConfigGame.PAUSE) {
       loops++;
@@ -91,7 +92,7 @@ new p5((p) => {
     //console.log(fpsRecorder.fps)
     timeMs = p.deltaTime;
   }
-
+  //wait the keys
   p.keyPressed = (keyEvent) => {
     if (keyEvent.key === "p" || keyEvent.key === "P") ConfigGame.PAUSE = !ConfigGame.PAUSE
     switch (scene) {

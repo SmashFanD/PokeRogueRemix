@@ -1,0 +1,2215 @@
+import { Animation } from "./game/animation.js"
+
+class BattleScene {
+    animation = new Animation()
+    lastPhase = null
+    preload() {}
+    setup() {}
+    update() {
+      //should i make a class for this
+      goToLastPhase(this.lastPhase)
+    }
+    keyPressed(keyEvent) {}
+}
+
+
+
+import { BattleType } from "./enums/battle-type"
+import { BiomeId } from "./enums/biomeId"
+import { BossType } from "./enums/boss-type"
+import { PokemonType } from "./enums/pokemon-type"
+import { ShopCursorTarget } from "./enums/shopcursortarget"
+import { SpeciesId } from "./enums/species-id"
+import { TextStyle } from "./enums/text-style"
+import { TimeOfDay } from "./enums/time-of-day"
+
+
+function GlobalScene() {
+  //Private
+  const phaseManager = new PhaseManager()
+  const bgmCache = new Set()
+  const turnCommandManager = new TurnCommandManager()
+  //const infoToggles = InfoToggle[]
+  const eventTarget = new EventTarget()
+  const animations = new Animation()
+
+  
+  function updateGameInfo() {
+    return true
+    // Logique interne
+  }
+
+  //Public
+  return {
+    uiInputs: null,
+    //move these settings into a settings helper object
+    shopCursorTarget: ShopCursorTarget.REWARDS,
+    commandCursorMemory: false,
+    showMovesetFlyout: true,
+    showArenaFlyout: true,
+    showLevelUpStats: true,
+    enableMoveInfo: true,
+    hideIvs: false,
+    disableMenu: false,
+    gameData: GameData, //remember theses are class
+  /** The numeric slot number of the current save slot being played. */
+    sessionSlotId: 0,
+  /**
+   * Global state variable indicating AI moveset generation is in progress
+   *
+   * @remarks
+   * It is intended that this is set to `true` while movesets are being generated.
+   * Its purpose is to skip certain checks and effects that are not relevant during
+   * the moveset generation process, such as ability suppression checks.
+   *
+   * @defaultValue `false`
+   */
+    movesetGenInProgress: false,
+
+    field: null,
+    fieldUI: null,
+    charSprite: CharSprite,
+    abilityBar: AbilityBar,
+    partyExpBar: PartyExpBar,
+    candyBar: CandyBar,
+    arenaBg: null,
+    arenaBgTransition: null,
+    arenaPlayer: ArenaBase,
+    arenaPlayerTransition: ArenaBase,
+    arenaEnemy: ArenaBase,
+    arenaNextEnemy: ArenaBase,
+    arena: Arena,
+    trainer: null,
+    lastEnemyTrainer: Trainer, //Should be null if none
+    currentBattle: Battle,
+    money: 0,
+    pokemonInfoContainerInfoContainer,
+    //party: PlayerPokemon[],
+    biomeWaveText: null,
+    moneyText: null,
+    modifierBar: ModifierBar, //pokemon can only hold one item but items have lvl
+    enemyModifierBar: ModifierBar,
+    arenaFlyout: ArenaFlyout,
+
+    fieldOverlay: null,
+    shopOverlay: null,
+    shopOverlayShown: false,
+    shopOverlayOpacity: 0.8,
+
+    //modifiers,
+    //enemyModifiers,
+    uiContainer: null,
+    ui: UI,
+    waveCycleOffset,
+
+    damageNumberHandler: DamageNumberHandler,
+
+    bgm: AnySound,
+    bgmResumeTimer:  null,
+
+    inputMethod: "",
+
+    renderer: null,
+
+    //Accès Private
+    getPhaseManager() {
+      return phaseManager
+    },
+    getBgmCache() {
+      return bgmCache
+    },
+    setup() {
+      //this.scene.remove(LoadingScene.KEY);
+      this.uiInputs = UiInputs();
+      this.gameData = new GameData();
+      this.launchBattle();
+    },
+    update() {
+      this.ui.update();
+    },
+    launchBattle(){
+      this.arenaBg = null;
+    this.arenaBgTransition = null;
+
+    this.field = null;
+    this.fieldUI = null;
+
+    //make a transition method
+    const transition = null;
+
+    //transition.transit({ mode: "blinds", ease: "Cubic.easeInOut", duration: 1250});
+
+    this.uiContainer = null;
+
+    const overlayWidth = this.scaledCanvas.width;
+    const overlayHeight = this.scaledCanvas.height - 48;
+    this.fieldOverlay = null;
+    this.shopOverlay = null;
+
+    this.modifiers = [];
+    this.enemyModifiers = [];
+
+    this.modifierBar = new ModifierBar("player")
+
+    this.enemyModifierBar = new ModifierBar("enemy")
+
+    this.charSprite = new CharSprite()
+    this.abilityBar = new AbilityBar()
+    this.partyExpBar = new PartyExpBar()
+    this.moneyText = addTextObject(this.scaledCanvas.width - 2, 0, "", TextStyle.NORMAL)
+      .setName("text-money")
+      .setOrigin(1, 0.5);
+
+    this.scoreText = addTextObject(this.scaledCanvas.width - 2, 0, "", TextStyle.NORMAL, { fontSize: "36px" })
+      .setName("text-score")
+      .setOrigin(1, 0.5);
+
+    this.arenaFlyout = new ArenaFlyout();
+    this.pokemonInfoContainer = new PokemonInfoContainer(this.scaledCanvas.width + 52, -this.scaledCanvas.height + 66) //
+      .setup();
+    this.updateUIPositions();
+
+    this.damageNumberHandler = new DamageNumberHandler();
+
+    //TO CHECK
+    for (let index = 0; index < 0; index++) {
+      this.fieldUI
+        .add([
+          this.fieldOverlay,
+          this.shopOverlay,
+          this.charSprite,
+          this.pbTray,
+          this.pbTrayEnemy,
+          this.abilityBar,
+          this.partyExpBar,
+          this.candyBar,
+          this.biomeWaveText,
+          this.moneyText,
+          this.scoreText,
+          this.luckText,
+          this.luckLabelText,
+          this.arenaFlyout,
+          this.pokemonInfoContainer,
+        ])
+        .moveBelow<Phaser.GameObjects.GameObject>(this.arenaFlyout, this.fieldOverlay);
+    }
+
+    //this.uiContainer.add([this.modifierBar, this.enemyModifierBar]);
+
+    this.party = [];
+
+    this.arenaPlayer = new ArenaBase("player")
+    this.arenaPlayerTransition = new ArenaBase("player-transition")
+      .setVisible(false);
+    this.arenaEnemy = new ArenaBase("enemy")
+    this.arenaNextEnemy = new ArenaBase("next-enemy")
+      .setVisible(false);
+    //this.field.add([this.arenaPlayer, this.arenaPlayerTransition, this.arenaEnemy, this.arenaNextEnemy]);
+
+    this.trainer = null;
+    //this.field.add(this.trainer);
+
+    this.reset(false, false, true);
+
+    // Initialize UI-related aspects and then start the login phase.
+    this.ui = new UI();
+    //this.uiContainer.add(this.ui);
+    this.ui.setup();
+
+    this.phaseManager.toTitleScreen(true);
+
+    },
+    initSession() {
+      this.updateMoneyText();
+    },
+    getPlayerParty() {
+      return this.party;
+    },
+
+  /**
+   * @returns An array of {@linkcode PlayerPokemon} filtered from the player's party
+   * that are {@linkcode Pokemon.isAllowedInBattle | allowed in battle}.
+   */
+    getPokemonAllowedInBattle() {
+      return this.getPlayerParty().filter(p => p.isAllowedInBattle());
+    },
+
+  /**
+   * @returns The first {@linkcode PlayerPokemon} that is {@linkcode getPlayerField on the field}
+   * and {@linkcode PlayerPokemon.isActive is active}
+   * (aka {@linkcode PlayerPokemon.isAllowedInBattle is allowed in battle}),
+   * or `undefined` if there are no valid pokemon
+   * @param includeSwitching Whether a pokemon that is currently switching out is valid, default `true`
+   */
+    getPlayerPokemon(includeSwitching) {
+      return this.getPlayerField().find(p => p.isActive() && (includeSwitching || p.switchOutStatus === false));
+    },
+
+  /**
+   * Returns an array of PlayerPokemon of length 1 or 2 depending on if in a double battle or not.
+   * @param active - (Default `false`) Whether to consider only {@linkcode Pokemon.isActive | active} on-field pokemon
+   * @returns array of {@linkcode PlayerPokemon}
+   */
+    getPlayerField(active) {
+      const party = this.getPlayerParty();
+      return party
+        .slice(0, Math.min(party.length, this.currentBattle?.double ? 2 : 1))
+        .filter(p => !active || p.isActive());
+    },
+
+    getEnemyParty() {
+      return this.currentBattle?.enemyParty ?? [];
+    },
+
+  /**
+   * @returns The first {@linkcode EnemyPokemon} that is {@linkcode getEnemyField | on the field}
+   * and {@linkcode EnemyPokemon.isActive | is active}
+   * (aka {@linkcode EnemyPokemon.isAllowedInBattle | is allowed in battle}),
+   * or `undefined` if there are no valid pokemon
+   * @param includeSwitching Whether a pokemon that is currently switching out is valid, default `true`
+   */
+    getEnemyPokemon(includeSwitching) {
+      return this.getEnemyField().find(p => p.isActive() && (includeSwitching || p.switchOutStatus === false));
+    },
+
+  /**
+   * Returns an array of EnemyPokemon of length 1 or 2 depending on if in a double battle or not.
+   * @param active - (Default `false`) Whether to consider only {@linkcode Pokemon.isActive | active} on-field pokemon
+   * @returns array of {@linkcode EnemyPokemon}
+   */
+    getEnemyField(active = false) {
+      const party = this.getEnemyParty();
+      return party
+        .slice(0, Math.min(party.length, this.currentBattle?.double ? 2 : 1))
+        .filter(p => !active || p.isActive());
+    },
+
+  /**
+   * Returns an array of Pokemon on both sides of the battle - player first, then enemy.
+   * Does not actually check if the pokemon are on the field or not, and always has length 4 regardless of battle type.
+   * @param activeOnly - Whether to consider only active pokemon (as described by {@linkcode Pokemon.isActive()}); default `false`.
+   * If `true`, will also remove all `null` values from the array.
+   * @returns An array of {@linkcode Pokemon}, as described above.
+   *
+   * @remarks
+   * This should *only* be used in instances where speed order is not relevant.
+   * If speed order matters, use {@linkcode inSpeedOrder}.
+   */
+    getField(activeOnly = false) {
+      const ret = new Array(4).fill(null);
+      const playerField = this.getPlayerField();
+      const enemyField = this.getEnemyField();
+      ret.splice(0, playerField.length, ...playerField);
+      ret.splice(2, enemyField.length, ...enemyField);
+      return activeOnly ? ret.filter(p => p?.isActive()) : ret;
+    },
+
+  /**
+   * Attempt to redirect a move in double battles from a fainted/removed Pokemon to its ally.
+   * @param removedPokemon - The {@linkcode Pokemon} having been removed from the field.
+   * @param allyPokemon - The {@linkcode Pokemon} allied with the removed Pokemon; will have moves redirected to it
+   */
+    redirectPokemonMoves(removedPokemon, allyPokemon) {
+      this.phaseManager.redirectMoves(removedPokemon, allyPokemon);
+    },
+
+  /**
+   * Returns the ModifierBar of this scene, which is declared private and therefore not accessible elsewhere
+   * @param isEnemy - Whether to return the enemy modifier bar instead of the player bar; default `false`
+   * @returns The {@linkcode ModifierBar} for the given side of the field
+   */
+    getModifierBar(isEnemy = false) {
+      return isEnemy ? this.enemyModifierBar : this.modifierBar;
+    },
+
+    // store info toggles to be accessible by the ui
+    addInfoToggle(...infoToggles) {
+      this.infoToggles.push(...infoToggles);
+    },
+
+    // return the stored info toggles; used by ui-inputs
+    getInfoToggles(activeOnly = false) {
+      return activeOnly ? this.infoToggles.filter(t => t?.isActive()) : this.infoToggles;
+    },
+
+  /**
+   * Return the {@linkcode Pokemon} associated with the given ID.
+   * @param pokemonId - The PID whose Pokemon will be retrieved
+   * @returns The `Pokemon` associated with the given ID,
+   * or `undefined` if none is found in either team's party.
+   * @see {@linkcode Pokemon.id}
+   */
+    getPokemonById(pokemonId) {
+      if (pokemonId == null) {
+        return undefined;
+      }
+
+      const party = (this.getPlayerParty()).concat(this.getEnemyParty());
+      return party.find(p => p.id === pokemonId);
+    },
+
+  /**
+   * @param species 
+   * @param level
+   * @param abilityIndex
+   * @param formIndex
+   * @param gender
+   * @param shiny
+   * @param ivs
+   * @param nature
+   * @param dataSource
+   * @param postProcess
+   * @returns A Pokemon Instance
+   */
+  addPlayerPokemon(
+    species,
+    level,
+    abilityIndex,
+    formIndex,
+    gender,
+    shiny,
+    ivs,
+    nature,
+    dataSource, 
+    postProcess,
+  ) {
+    const pokemon = new PlayerPokemon(
+      species,
+      level,
+      abilityIndex,
+      formIndex,
+      gender,
+      shiny,
+      ivs,
+      nature,
+      dataSource,
+    );
+
+    if (postProcess) {
+      postProcess(pokemon);
+    }
+
+    pokemon.init();
+    return pokemon;
+  },
+
+  addEnemyPokemon(
+    species,
+    level,
+    trainerSlot,
+    boss = BossType.NONE,
+    shinyLock = false,
+    dataSource,
+    postProcess,
+  ) {
+    const pokemon = new EnemyPokemon(species, level, trainerSlot, boss, shinyLock, dataSource);
+    
+    if (boss !== BossType.NONE && !dataSource) {
+      const secondaryIvs = getIvsFromId(randInt(4294967296));
+
+      let ret = 0;
+      if (boss >= BossType.WEAKEST && boss <= BossType.STRONGEST) {
+        ret += boss
+      } else if (boss >= BossType.GYM_LEADER_WEAKEST && boss <= BossType.GYM_LEADER_STRONGEST) {
+        ret += 1 + (boss - 10);
+      } else if (boss >= BossType.ELITE_FOUR_WEAKEST && boss <= BossType.ELITE_FOUR_STRONGEST) {
+        ret += 2 + (boss - 20);
+      } else if (boss >= BossType.CHAMPION_WEAKEST && boss <= BossType.CHAMPION_STRONGEST) {
+        ret += 3 + (boss - 30);
+      } else if (boss >= BossType.RIVAL_WEAKEST && boss <= BossType.RIVAL_STRONGEST) {
+        ret += 4 + (boss - 40);
+      } else if (boss >= BossType.LEGENDARY_WEAKEST && boss <= BossType.LEGENDARY_STRONGEST) {
+        ret += 5 + (boss - 50);
+      }
+
+      for (let s = 0; s < pokemon.ivs.length; s++) {
+        pokemon.ivs[s] = Math.round(Math.min(pokemon.ivs[s], secondaryIvs[s] + ret))
+      }
+    }
+    if (postProcess) {
+      postProcess(pokemon);
+    }
+
+    pokemon.init();
+    return pokemon;
+  },
+
+  /**
+   * Removes a {@linkcode PlayerPokemon} from the party, and clears modifiers for that Pokemon's id
+   * Useful for MEs/Challenges that remove Pokemon from the player party temporarily or permanently
+   * @param pokemon
+   * @param destroy Default true. If true, will destroy the {@linkcode PlayerPokemon} after removing
+   */
+  removePokemonFromPlayerParty(pokemon, destroy = true) {
+    if (!pokemon) {
+      return;
+    }
+
+    const partyIndex = this.party.indexOf(pokemon);
+    this.party.splice(partyIndex, 1);
+    if (destroy) {
+      this.field.remove(pokemon, true);
+      pokemon.destroy();
+    }
+    this.updateModifiers(true);
+  },
+
+  addPokemonIcon(
+    pokemon,
+    x,
+    y,
+    originX = 0.5,
+    originY = 0.5,
+    ignoreOverride = true,
+    useIllusion = false,
+  ) {
+   
+    
+    return null;
+  },
+
+  // TODO: Break up function - this does far too much in 1 sitting
+  reset(clearScene = false, clearData = false, reloadI18n = false) {
+    if (clearData) {
+      this.gameData = new GameData();
+    }
+
+    this.turnCommandManager.resetTurnOrder();
+
+    this.disableMenu = false;
+
+    this.money = 0;
+
+    this.modifiers = [];
+    this.enemyModifiers = [];
+    this.modifierBar.removeAll(true);
+    this.enemyModifierBar.removeAll(true);
+
+    for (const p of this.getPlayerParty()) {
+      p.destroy();
+    }
+    this.party = [];
+    for (const p of this.getEnemyParty()) {
+      p.destroy();
+    }
+
+    this.currentBattle = null; // TODO: this should never be `null`, probably needs multiple scenes
+    
+    this.updateMoneyText();
+    this.moneyText.setVisible(false);
+
+    this.newArena(Overrides.STARTING_BIOME_OVERRIDE || BiomeId.TOWN);
+
+    //this.field.setVisible(true);
+
+    //this.arenaBgTransition.setPosition(0, 0);
+    //this.arenaPlayer.setPosition(300, 0);
+    //this.arenaPlayerTransition.setPosition(0, 0);
+    //this.arenaEnemy.setPosition(-280, 0);
+    //this.arenaNextEnemy.setPosition(-280, 0);
+    //this.arenaNextEnemy.setVisible(false);
+
+    this.arena.init();
+
+    //this.trainer.setTexture(`trainer_${this.gameData.gender === PlayerGender.FEMALE ? "f" : "m"}_back`);
+    //this.trainer.setPosition(406, 186);
+    //this.trainer.setVisible(true);
+
+    this.updateGameInfo();
+
+    if (reloadI18n) {
+      const localizable = [
+        ...allSpecies,
+        ...allMoves,
+        ...getEnumValues(ModifierPoolType)
+          .map(mpt => getModifierPoolForType(mpt))
+          .flatMap(mp =>
+            Object.values(mp)
+              .flat()
+              .map(mt => mt.modifierType)
+              .filter((mt) => "localize" in mt && typeof mt.localize === "function"),
+          ),
+      ];
+      for (const item of localizable) {
+        item.localize();
+      }
+    }
+
+    if (clearScene) {
+      this.fadeOutBgm(250, false);
+      //animation
+      for (let index = 0; index < 0; index++) {
+        this.tweens.add({
+          targets: [this.uiContainer],
+          alpha: 0,
+          duration: 250,
+          ease: "Sine.easeInOut",
+          onComplete: () => {
+            this.ui.freeUIData();
+            this.uiContainer.remove(this.ui, true);
+            this.uiContainer.destroy();
+            this.children.removeAll(true);
+            // TODO: Do we even need this?
+            this.game.domContainer.innerHTML = "";
+            // TODO: `launchBattle` calls `reset(false, false, true)`
+            this.launchBattle();
+          },
+        });
+      }
+    }
+  },
+  isNewBiome(currentBattle = this.currentBattle) {
+    const isWaveIndexMultipleOfFive = !(currentBattle.waveIndex % 5);
+    const isWaveIndexMultipleOfFiftyMinusOne = currentBattle.waveIndex % 25 === 24;
+    return isWaveIndexMultipleOfFive ||  isWaveIndexMultipleOfFiftyMinusOne;
+  },
+
+  /**
+   * Create and initialize a new battle.
+   * @param fromSession - The {@linkcode SessionSaveData} being used to seed the battle. \
+   *   Should be omitted if not loading an existing save file.
+   * @returns The newly created `Battle` instance.
+   */
+  newBattle(fromSession) {
+    const props = this.getNewBattleProps(fromSession);
+    const { waveIndex } = props;
+    const resolved = { waveIndex };
+
+    // Set attributes of the `resolved` object based on the type of battle being created.
+    if (fromSession) {
+      this.handleSavedBattle(resolved, props);
+    } else if (this.gameMode.isFixedBattle(waveIndex)) {
+      this.handleFixedBattle(resolved);
+    } else {
+      this.handleNonFixedBattle(resolved);
+    }
+
+    if (resolved.battleType == null) {
+      throw new Error(
+        "BattleScene.newBattle lacked battle type information inside new battle config!\nData:\n"
+          + JSON.stringify(resolved),
+      );
+    }
+    resolved.double = this.checkIsDouble(resolved);
+
+    const lastBattle = this.currentBattle;
+
+    this.lastEnemyTrainer = lastBattle?.trainer ?? null;
+
+    this.currentBattle = new Battle(this.gameMode, resolved);
+    this.currentBattle.incrementTurn();
+
+    if (!fromSession?.waveIndex && lastBattle) {
+      this.doPostBattleCleanup(lastBattle, maxExpLevel);
+    }
+    return this.currentBattle;
+  },
+
+  /**
+   * Helper function to {@linkcode BattleScene.newBattle | newBattle} to initialize variables
+   * with defaults if no session data is provided.
+   * @param fromSession - The session data being used to initialize the battle
+   * @returns The new battle props
+   */
+  getNewBattleProps(fromSession) {
+    if (fromSession == null) {
+      return {
+        battleType: BattleType.WILD,
+        // Don't increment wave index when computing starting wave
+        waveIndex: this.currentBattle != null
+            ? this.currentBattle.waveIndex + 1
+            : STARTING_WAVE
+      };
+    }
+
+    const { waveIndex, battleType, trainer } = fromSession;
+    // TODO: Remove fallback once we stop using `-1` as a default value for session data fields (which wastes space)
+
+    return {
+      battleType,
+      waveIndex,
+      trainerData,
+    };
+  },
+
+  /**
+   * Sub-method of {@linkcode newBattle} that handles fixed trainer battles.
+   * @param resolved - The object to modify
+   */
+  handleFixedBattle(resolved) {
+    const { waveIndex } = resolved;
+    // Bang is justified as this code is only called when `isFixedBattle` is true
+    const battleConfig = this.gameMode.getFixedBattle(waveIndex);
+    resolved.double = battleConfig.double;
+    resolved.battleType = battleConfig.battleType;
+
+    const trainer = battleConfig.getTrainer();
+    
+    //this.field.add(trainer);
+    resolved.trainer = trainer;
+  },
+
+  /**
+   * Sub-method of {@linkcode newBattle} that handles loading existing saved battles.
+   * @param resolved - The object to modify
+   * @param props - The {@linkcode NewBattleSavedProps} created from the save data
+   */
+  handleSavedBattle(resolved, props) {
+    resolved.battleType = props.battleType;
+    resolved.trainer = props.trainerData?.toTrainer();
+    if (resolved.trainer) {
+      //this.field.add(resolved.trainer);
+    }
+  },
+
+  /**
+   * Sub-method of {@linkcode newBattle} that handles generating a new battle from scratch.
+   * @param resolved - The object to modify properties of
+   */
+  handleNonFixedBattle(resolved) {
+    const { waveIndex } = resolved;
+    resolved.battleType =
+      !this.gameMode.hasTrainer
+        ? BattleType.WILD
+        : (this.gameMode.isWaveTrainer(waveIndex) ? BattleType.TRAINER : BattleType.WILD);
+
+    
+    if (resolved.battleType !== BattleType.TRAINER) {
+      return;
+    }
+
+    const trainer = this.generateNewBattleTrainer(waveIndex);
+    //this.field.add(trainer);
+    resolved.trainer = trainer;
+  },
+
+  /**
+   * Helper function to randomly determine the attributes of a newly generated trainer.
+   * @param waveIndex - The wave number being generated
+   * @returns The generated trainer.
+   */
+  generateNewBattleTrainer(waveIndex) {
+    const trainerType = Overrides.RANDOM_TRAINER_OVERRIDE?.trainerType ?? this.arena.randomTrainerType(waveIndex);
+    const config = trainerConfigs[trainerType];
+    const variant = randSeedInt(2) ? TrainerVariant.FEMALE : TrainerVariant.DEFAULT;
+    return new Trainer(trainerType, variant);
+  },
+
+  // TODO: Split this up and move it to a "post battle phase"
+  doPostBattleCleanup(lastBattle) {
+    const isNewBiome = this.isNewBiome(lastBattle);
+    /** Whether to reset and recall pokemon */
+    const resetArenaState =
+      isNewBiome
+      || [BattleType.TRAINER].includes(this.currentBattle.battleType)
+      || this.currentBattle.battleSpec === BattleSpec.FINAL_BOSS;
+
+    for (const enemyPokemon of this.getEnemyParty()) {
+      enemyPokemon.destroy();
+    }
+
+    //this.trySpreadPokerus();
+    if (!isNewBiome && this.currentBattle.waveIndex % 10 === 5) {
+      //this.arena.updatePoolsForTimeOfDay();
+    }
+
+    // use the old value of `double` to ensure both combatants get recalled properly when going from double to single battles
+    const playerField = this.getPlayerParty().slice(0, 1);
+    if (resetArenaState) {
+      //this.arena.resetArenaEffects();
+
+      playerField.forEach((pokemon, index) => {
+        pokemon.lapseTag(BattlerTagType.COMMANDED);
+        if (pokemon.isOnField()) {
+          //this.phaseManager.pushNew("ReturnPhase", index);
+        }
+      });
+
+      for (const pokemon of this.getPlayerParty()) {
+        pokemon.resetBattleAndWaveData();
+        applyAbAttrs("PostBattleInitAbAttr", { pokemon });
+      }
+
+      if (!this.trainer.visible) {
+        //this.phaseManager.pushNew("ShowTrainerPhase");
+      }
+    }
+
+    for (const pokemon of this.getPlayerParty()) {
+      //this.triggerPokemonFormChange(pokemon, SpeciesFormChangeTimeOfDayTrigger);
+    }
+
+    if (!this.gameMode.hasRandomBiomes && !isNewBiome) {
+      this.phaseManager.pushNew("NextEncounterPhase");
+    } else {
+      this.phaseManager.pushNew("NewBiomeEncounterPhase");
+    }
+  },
+
+  newArena(biome, playerFaints = 0) {
+    this.arena = new Arena(biome, playerFaints);
+    this.eventTarget.dispatchEvent(new NewArenaEvent());
+    return this.arena;
+  },
+
+  updateFieldScale() {
+    return new Promise(resolve => {
+      const fieldScale =
+        Math.floor(
+          Math.pow(
+            1
+              / this.getField(true)
+                .map(p => p.getSpriteScale())
+                .reduce((highestScale, scale) => (highestScale = Math.max(scale, highestScale)), 0),
+            0.7,
+          ) * 40,
+        ) / 40;
+      this.setFieldScale(fieldScale).then(() => resolve());
+    });
+  },
+
+  setFieldScale(scale, instant = false) {
+    return new Promise(resolve => {
+      scale *= 6;
+      if (this.field.scale === scale) {
+        return resolve();
+      }
+
+      const defaultWidth = this.arenaBg.width * 6;
+      const defaultHeight = 132 * 6;
+      const scaledWidth = this.arenaBg.width * scale;
+      const scaledHeight = 132 * scale;
+
+      this.tweens.add({
+        targets: this.field,
+        scale,
+        x: (defaultWidth - scaledWidth) / 2,
+        y: defaultHeight - scaledHeight,
+        duration: instant ? 0 : fixedInt(Math.abs(this.field.scale - scale) * 200),
+        ease: "Sine.easeInOut",
+        onComplete: () => resolve(),
+      });
+    });
+  },
+
+  // TODO: break this up
+  getSpeciesFormIndex(species, gender, nature, ignoreArena = false) {
+    if (species.forms == null) {
+      console.warn(`Form data missing for ${species.name}!\n`, species);
+      return 0;
+    }
+    if (species.forms.length === 0) {
+      return 0;
+    }
+
+    const isEggPhase =
+      this.phaseManager.getCurrentPhase().is("EggLapsePhase")
+      || this.phaseManager.getCurrentPhase().is("EggHatchPhase");
+
+    const isTrainerBattle = this.currentBattle?.battleType === BattleType.TRAINER;
+
+    // Give trainers with specialty types an appropriately-typed form for Wormadam, Rotom, Arceus, Oricorio, Silvally, or Paldean Tauros.
+    if (!isEggPhase && isTrainerBattle && this.currentBattle.trainer?.config.hasSpecialtyType()) {
+      if (species.speciesId === SpeciesId.WORMADAM) {
+        switch (this.currentBattle.trainer.config.specialtyType) {
+          case PokemonType.GROUND:
+            return 1; // Sandy Cloak
+          case PokemonType.STEEL:
+            return 2; // Trash Cloak
+          case PokemonType.GRASS:
+            return 0; // Plant Cloak
+        }
+      }
+      if (species.speciesId === SpeciesId.ROTOM) {
+        switch (this.currentBattle.trainer.config.specialtyType) {
+          case PokemonType.FLYING:
+            return 4; // Fan Rotom
+          case PokemonType.GHOST:
+            return 0; // Lightbulb Rotom
+          case PokemonType.FIRE:
+            return 1; // Heat Rotom
+          case PokemonType.WATER:
+            return 2; // Wash Rotom
+          case PokemonType.GRASS:
+            return 5; // Mow Rotom
+          case PokemonType.ICE:
+            return 3; // Frost Rotom
+        }
+      }
+      if (species.speciesId === SpeciesId.ORICORIO) {
+        switch (this.currentBattle.trainer.config.specialtyType) {
+          case PokemonType.GHOST:
+            return 3; // Sensu Style
+          case PokemonType.FIRE:
+            return 0; // Baile Style
+          case PokemonType.ELECTRIC:
+            return 1; // Pom-Pom Style
+          case PokemonType.PSYCHIC:
+            return 2; // Pa'u Style
+        }
+      }
+      if (species.speciesId === SpeciesId.PALDEA_TAUROS) {
+        switch (this.currentBattle.trainer.config.specialtyType) {
+          case PokemonType.FIRE:
+            return 1; // Blaze Breed
+          case PokemonType.WATER:
+            return 2; // Aqua Breed
+        }
+      }
+      if (species.speciesId === SpeciesId.SILVALLY || species.speciesId === SpeciesId.ARCEUS) {
+        // Would probably never happen, but might as well
+        return this.currentBattle.trainer.config.specialtyType;
+      }
+    }
+
+    switch (species.speciesId) {
+      case SpeciesId.UNOWN:
+      case SpeciesId.SHELLOS:
+      case SpeciesId.GASTRODON:
+      case SpeciesId.ROTOM:
+      case SpeciesId.BASCULIN:
+      case SpeciesId.DEERLING:
+      case SpeciesId.SAWSBUCK:
+      case SpeciesId.SCATTERBUG:
+      case SpeciesId.SPEWPA:
+      case SpeciesId.VIVILLON:
+      case SpeciesId.FLABEBE:
+      case SpeciesId.FLOETTE:
+      case SpeciesId.FLORGES:
+      case SpeciesId.FURFROU:
+      case SpeciesId.PUMPKABOO:
+      case SpeciesId.GOURGEIST:
+      case SpeciesId.ORICORIO:
+      case SpeciesId.MAGEARNA:
+      case SpeciesId.ZARUDE:
+      case SpeciesId.SQUAWKABILLY:
+      case SpeciesId.TATSUGIRI:
+      case SpeciesId.PALDEA_TAUROS:
+        return randSeedInt(species.forms.length);
+      case SpeciesId.SINISTEA:
+      case SpeciesId.POLTEAGEIST:
+      case SpeciesId.MAUSHOLD:
+      case SpeciesId.DUDUNSPARCE:
+      case SpeciesId.POLTCHAGEIST:
+      case SpeciesId.SINISTCHA:
+        return randSeedInt(16) ? 0 : 1;
+      case SpeciesId.PICHU:
+        return randSeedInt(8) ? 0 : 1;
+      case SpeciesId.PIKACHU:
+        if (isTrainerBattle && this.currentBattle?.waveIndex < 30) {
+          return 0; // Ban Cosplay and Partner Pika from Trainers before wave 30
+        }
+        return randSeedInt(8);
+      case SpeciesId.EEVEE:
+        if (isTrainerBattle && this.currentBattle?.waveIndex < 30 && !isEggPhase) {
+          return 0; // No Partner Eevee for Wave 12 Preschoolers
+        }
+        return randSeedInt(2);
+      case SpeciesId.FROAKIE:
+      case SpeciesId.FROGADIER:
+      case SpeciesId.GRENINJA:
+        if (isTrainerBattle && !isEggPhase) {
+          return 0; // Don't give trainers Battle Bond Greninja, Froakie or Frogadier
+        }
+        return randSeedInt(2);
+      case SpeciesId.URSHIFU:
+        return randSeedInt(2);
+      case SpeciesId.ZYGARDE:
+        return randSeedInt(4);
+      case SpeciesId.MINIOR:
+        return randSeedInt(7);
+      case SpeciesId.ALCREMIE:
+        return randSeedInt(9);
+      case SpeciesId.MEOWSTIC:
+      case SpeciesId.INDEEDEE:
+      case SpeciesId.BASCULEGION:
+      case SpeciesId.OINKOLOGNE:
+        return gender === Gender.FEMALE ? 1 : 0;
+      case SpeciesId.TOXTRICITY: {
+        const lowkeyNatures = [
+          Nature.LONELY,
+          Nature.BOLD,
+          Nature.RELAXED,
+          Nature.TIMID,
+          Nature.SERIOUS,
+          Nature.MODEST,
+          Nature.MILD,
+          Nature.QUIET,
+          Nature.BASHFUL,
+          Nature.CALM,
+          Nature.GENTLE,
+          Nature.CAREFUL,
+        ];
+        if (nature !== undefined && lowkeyNatures.includes(nature)) {
+          return 1;
+        }
+        return 0;
+      }
+      case SpeciesId.GIMMIGHOUL:
+        // In game modes with MEs (currently Classic only),
+        // chest form Gimmighoul is only allowed to appear in the Mysterious Chest Encounter
+        if (this.gameMode.hasMysteryEncounters && !isEggPhase) {
+          return 1; // Wandering form
+        }
+        return randSeedInt(species.forms.length);
+      case SpeciesId.BURMY:
+      case SpeciesId.WORMADAM:
+        if (ignoreArena) {
+          return randSeedInt(species.forms.length);
+        }
+        switch (this.arena.biomeId) {
+          case BiomeId.BEACH:
+            return 1;
+          case BiomeId.SLUM:
+            return 2;
+        }
+        return 0;
+      case SpeciesId.LYCANROC:
+        if (ignoreArena) {
+          return randSeedInt(species.forms.length);
+        }
+        switch (this.arena.getTimeOfDay()) {
+          case TimeOfDay.DAWN:
+          case TimeOfDay.DAY:
+            return 0;
+          case TimeOfDay.DUSK:
+            return 2;
+          case TimeOfDay.NIGHT:
+            return 1;
+        }
+        return 0;
+    }
+
+    return 0;
+  },
+
+  getGeneratedOffsetGym() {
+    return !randSeedInt(2)
+  },
+
+  getGeneratedWaveCycleOffset() {
+    return randSeedInt(8) * 5
+  },
+
+  getBossType(waveIndex) {
+    if (waveIndex % 1500 === 0) {
+      return BossType.STRONGEST;
+    }
+    if (waveIndex % 300 === 0) {
+      return BossType.STRONG;
+    }
+    if (waveIndex % 100 === 0) {
+       return BossType.MEDIUM;
+    }
+    if (waveIndex % 25 === 0) {
+       return BossType.WEAK;
+    }
+    if (waveIndex % 5 === 0) {
+      return BossType.WEAKEST;
+    }
+
+    const randBossChanceAddTier = Math.min(Math.max(Math.ceil((waveIndex - 250) / 50), 0) * 2, 30);
+    let boss = 0
+    for (i = 0; i < 5; i++) {
+      if (randInt(100) >= randBossChanceAddTier) continue
+      boss++
+    }
+    return boss
+  },
+
+  getEncounterBossSegments(waveIndex, level, species, boss = false) {
+    if (!boss || boss <= BossType.NONE) {
+      boss = this.getBossType(waveIndex, boss);
+    }
+
+    //(rework how shields work)
+    //ShieldPercentage (20% shield per boss tier, dmg reduced 3* per tier inside shield)
+    return 20 * boss
+  },
+
+  trySpreadPokerus() {
+    const party = this.getPlayerParty();
+    const infectedIndexes = [];
+    const spread = (index, spreadTo) => {
+      const partyMember = party[index + spreadTo];
+      if (!partyMember.pokerus && !randSeedInt(10)) {
+        partyMember.pokerus = true;
+        infectedIndexes.push(index + spreadTo);
+      }
+    };
+    party.forEach((pokemon, p) => {
+      if (!pokemon.pokerus || infectedIndexes.indexOf(p) > -1) {
+        return;
+      }
+
+      if (p) {
+        spread(p, -1);
+      }
+      if (p < party.length - 1) {
+        spread(p, 1);
+      }
+    });
+  },
+
+  addFieldSprite(
+    x,
+    y,
+    texture,
+    frame,
+    terrainColorRatio = 0,
+  ) {
+    //const ret = this.add //
+    //  .sprite(x, y, texture, frame)
+    //  .setPipeline(this.fieldSpritePipeline);
+
+    //return ret;
+  },
+
+  addPokemonSprite(
+    pokemon,
+    x,
+    y,
+    texture,
+    frame,
+    hasShadow = false,
+    ignoreOverride = false,
+  ) {
+    //const ret = this.addFieldSprite(x, y, texture, frame);
+    //this.initPokemonSprite(ret, pokemon, hasShadow, ignoreOverride);
+    //return ret;
+  },
+  
+  //not needed for now
+  initPokemonSprite(
+    sprite,
+    pokemon,
+    hasShadow = false,
+    ignoreOverride = false,
+  ) {
+    return sprite;
+  },
+
+  //not used yet, should use this to move sprites below another
+  moveBelowOverlay(gameObject) {
+    return
+  },
+
+  processInfoButton(pressed) {
+    this.arenaFlyout.toggleFlyout(pressed);
+  },
+
+  showFieldOverlay(duration) {
+    return new Promise(resolve => {
+      //anim
+      //this.tweens.add({
+      //  targets: this.fieldOverlay,
+      //  alpha: 0.5,
+      //  ease: "Sine.easeOut",
+      //  duration,
+      //  onComplete: () => resolve(),
+      //});
+    });
+  },
+
+  hideFieldOverlay(duration) {
+    return new Promise(resolve => {
+      this.tweens.add({
+        targets: this.fieldOverlay,
+        alpha: 0,
+        duration,
+        ease: "Cubic.easeIn",
+        onComplete: () => resolve(),
+      });
+    });
+  },
+
+  updateShopOverlayOpacity(value) {
+    this.shopOverlayOpacity = value;
+
+    if (this.shopOverlayShown) {
+      this.shopOverlay.setAlpha(this.shopOverlayOpacity);
+    }
+  },
+
+  //Duration param in case we animate later
+  showShopOverlay(duration) {
+    this.shopOverlayShown = true;
+    this.shopOverlay.style.opacity = this.shopOverlayOpacity;
+    return Promise.resolve();
+  },
+
+  hideShopOverlay(duration) {
+    this.shopOverlayShown = false;
+    this.shopOverlay.style.opacity = 0;
+    return Promise.resolve();
+  },
+
+  showEnemyModifierBar() {
+    this.enemyModifierBar.setVisible(true);
+  },
+
+  hideEnemyModifierBar() {
+    this.enemyModifierBar.setVisible(false);
+  },
+
+  updateBiomeWaveText() {
+    const isBoss = !(this.currentBattle.waveIndex % 5);
+    const biomeString= getBiomeName(this.arena.biomeId);
+    //this.fieldUI.moveAbove(this.biomeWaveText, this.luckText);
+    this.biomeWaveText
+      .setText(biomeString + " - " + this.currentBattle.waveIndex.toString())
+      .setColor(isBoss ? "#f89890" : "#ffffff")
+      .setShadowColor(isBoss ? "#984038" : "#636363")
+      .setVisible(true);
+  },
+
+  updateMoneyText(forceVisible = true) {
+    if (this.money === undefined) {
+      return;
+    }
+    const formattedMoney = formatMoney(this.moneyFormat, this.money);
+    this.moneyText.setText(i18next.t("battleScene:moneyOwned", { formattedMoney }));
+    //this.fieldUI.moveAbove(this.moneyText, this.luckText);
+    if (forceVisible) {
+      this.moneyText.setVisible(true);
+    }
+  },
+
+  updateUIPositions() {
+    const enemyModifierCount = this.enemyModifiers.filter(m => m.isIconVisible()).length;
+    const biomeWaveTextHeight = this.biomeWaveText.getBottomLeft().y - this.biomeWaveText.getTopLeft().y;
+    this.biomeWaveText.setY(
+      -this.scaledCanvas.height
+        + (enemyModifierCount ? (enemyModifierCount <= 12 ? 15 : 24) : 0)
+        + biomeWaveTextHeight / 2,
+    );
+    this.moneyText.setY(this.biomeWaveText.y + 10);
+    const offsetY =  this.moneyText.y + 15;
+    this.partyExpBar.setY(offsetY);
+  },
+
+  /**
+   * Pushes all {@linkcode Phaser.GameObjects.Text} objects in the top right to the bottom of the canvas
+   */
+  sendTextToBack() {
+    this.fieldUI.sendToBack(this.biomeWaveText);
+    this.fieldUI.sendToBack(this.moneyText);
+  },
+
+  randomSpecies(
+    waveIndex,
+    level,
+    fromArenaPool = false,
+    speciesFilterSpeciesFilter,
+    filterAllEvolutions = false,
+  ) {
+    if (fromArenaPool) {
+      return this.arena.randomSpecies(waveIndex, level, 0, getPartyLuckValue(this.party));
+    }
+
+    // TODO: simplify this?
+    const filteredSpecies = speciesFilter
+      ? [
+          ...new Set(
+            allSpecies
+              .filter(s => s.isCatchable() && speciesFilter(s))
+              .map(s => {
+                if (!filterAllEvolutions) {
+                  while (Object.hasOwn(pokemonPrevolutions, s.speciesId)) {
+                    s = getPokemonSpecies(pokemonPrevolutions[s.speciesId]);
+                  }
+                }
+                return s;
+              }),
+          ),
+        ]
+      : allSpecies.filter(s => s.isCatchable());
+    return randSeedItem(filteredSpecies);
+  },
+
+  generateRandomBiome(waveIndex) {
+    const relWave = waveIndex % 250;
+    const biomes = Object.values(BiomeId).filter(b => b !== BiomeId.TOWN && b !== BiomeId.END);
+    const maxDepth = biomeDepths[BiomeId.END][0] - 2;
+    const depthWeights = new Array(maxDepth + 1)
+      .fill(null)
+      .map((_, i) => ((1 - Math.min(Math.abs(i / (maxDepth - 1) - relWave / 250) + 0.25, 1)) / 0.75) * 250);
+    const biomeDepths = [];
+    let totalWeight = 0;
+    for (const biome of biomes) {
+      totalWeight += Math.ceil(depthWeights[biomeDepths[biome][0] - 1] / biomeDepths[biome][1]);
+      biomeThresholds.push(totalWeight);
+    }
+
+    const randInt = randSeedInt(totalWeight);
+    for (let i = 0; i < biomes.length; i++) {
+      if (randInt < biomeThresholds[i]) {
+        return biomes[i];
+      }
+    }
+
+    return randSeedItem(biomes);
+  },
+
+  isBgmPlaying() {
+    return this.bgm?.isPlaying ?? false;
+  },
+
+  playBgm(bgmName, fadeOut = false) {
+    if (bgmName === undefined) {
+      bgmName = this.currentBattle?.getBgmOverride() || this.arena?.bgm;
+    }
+    if (this.bgm && bgmName === this.bgm.key) {
+      if (!this.bgm.isPlaying) {
+        this.bgm.play();
+      }
+      return;
+    }
+    if (fadeOut && !this.bgm) {
+      fadeOut = false;
+    }
+    this.bgmCache.add(bgmName);
+    this.loadBgm(bgmName);
+    let loopPoint = 0; //Use the stored ones
+    let loaded = false;
+    const playNewBgm = () => {
+      this.ui.bgmBar.setBgmToBgmBar(bgmName);
+      if (bgmName === null && this.bgm && !this.bgm.pendingRemove) {
+        this.bgm.play({
+          volume: this.masterVolume * this.bgmVolume,
+        });
+        return;
+      }
+      if (this.bgm && !this.bgm.pendingRemove && this.bgm.isPlaying) {
+        this.bgm.stop();
+      }
+      this.bgm = this.sound.add(bgmName, { loop: true });
+      this.bgm.play({
+        volume: this.masterVolume * this.bgmVolume,
+      });
+      if (loopPoint) {
+        this.bgm.on("looped", () => this.bgm.play({ seek: loopPoint }));
+      }
+    };
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      loaded = true;
+      if (!fadeOut || !this.bgm.isPlaying) {
+        playNewBgm();
+      }
+    });
+    if (fadeOut) {
+      const onBgmFaded = () => {
+        if (loaded && (!this.bgm.isPlaying || this.bgm.pendingRemove)) {
+          playNewBgm();
+        }
+      };
+      this.time.delayedCall(this.fadeOutBgm(500, true) ? 750 : 250, onBgmFaded);
+    }
+    if (!this.load.isLoading()) {
+      this.load.start();
+    }
+  },
+
+  pauseBgm() {
+    if (this.bgm && !this.bgm.pendingRemove && this.bgm.isPlaying) {
+      this.bgm.pause();
+      return true;
+    }
+    return false;
+  },
+
+  resumeBgm() {
+    if (this.bgm && !this.bgm.pendingRemove && this.bgm.isPaused) {
+      this.bgm.resume();
+      return true;
+    }
+    return false;
+  },
+
+  fadeOutBgm(duration = 500, destroy = true) {
+    if (!this.bgm) {
+      return false;
+    }
+    const bgm = this.sound.getAllPlaying().find(bgm => bgm.key === this.bgm.key);
+    if (bgm) {
+      SoundFade.fadeOut(this, this.bgm, duration, destroy);
+      return true;
+    }
+
+    return false;
+  },
+
+  /**
+   * Fades out current track for `delay` ms, then fades in new track.
+   * @param newBgmKey
+   * @param destroy
+   * @param delay
+   */
+  fadeAndSwitchBgm(newBgmKey, destroy = false, delay = 2000) {
+    this.fadeOutBgm(delay, destroy);
+    this.time.delayedCall(delay, () => {
+      this.playBgm(newBgmKey);
+    });
+  },
+
+  playSound(sound, config) {
+
+    const key = typeof sound === "string" ? sound : sound.key;
+    try {
+      const keyDetails = key.split("/");
+      switch (keyDetails[0]) {
+        case "level_up_fanfare":
+        case "item_fanfare":
+        case "minor_fanfare":
+        case "heal":
+        case "evolution":
+        case "evolution_fanfare":
+          // These sounds are loaded in as BGM, but played as sound effects
+          // When these sounds are updated in updateVolume(), they are treated as BGM however because they are placed in the BGM Cache through being called by playSoundWithoutBGM()
+          break;
+        case "battle_anims":
+        case "cry":
+          break;
+        case "ui":
+          //As of, right now this applies to the "select", "menu_open", "error" sound effects
+          break;
+        case "se":
+          break;
+      }
+      this.sound.play(key);
+      return this.sound.get(key);
+    } catch {
+      console.warn(`${key} not found`);
+      return null;
+    }
+  },
+
+  playSoundWithoutBgm(soundName, pauseDuration) {
+    this.bgmCache.add(soundName);
+    const resumeBgm = this.pauseBgm();
+    this.playSound(soundName);
+    const sound = this.sound.get(soundName);
+    if (!sound) {
+      return sound;
+    }
+    if (this.bgmResumeTimer) {
+      this.bgmResumeTimer.destroy();
+    }
+    if (resumeBgm) {
+      this.bgmResumeTimer = this.time.delayedCall(pauseDuration || fixedInt(sound.totalDuration * 1000), () => {
+        this.resumeBgm();
+        this.bgmResumeTimer = null;
+      });
+    }
+    return sound;
+  },
+
+  addMoney(amount){
+    this.money = Math.min(this.money + amount, Number.MAX_SAFE_INTEGER);
+    this.updateMoneyText();
+    this.animateMoneyChanged(true);
+    this.validateAchvs(MoneyAchv);
+  },
+
+  getWaveMoneyAmount(moneyMultiplier) {
+    const waveIndex = this.currentBattle.waveIndex;
+    const waveSetIndex = Math.ceil(waveIndex / 10) - 1;
+    const moneyValue =
+      Math.pow((waveSetIndex + 1 + (0.75 + (((waveIndex - 1) % 10) + 1) / 10)) * 100, 1 + 0.005 * waveSetIndex)
+      * moneyMultiplier;
+    return Math.floor(moneyValue / 10) * 10;
+  },
+
+  addModifier(
+    modifier,
+    ignoreUpdate,
+    playSound,
+    virtual,
+    instant,
+    cost,
+  ) {
+    // We check against modifier.type to stop a bug related to loading in a pokemon that has a form change item, which prior to some patch
+    // that changed form change modifiers worked, had previously set the `type` field to null.
+    // TODO: This is not the right place to check for this; it should ideally go in a session migrator.
+    if (!modifier || !modifier.type) {
+      return false;
+    }
+    let success = false;
+    const soundName = modifier.type.soundName;
+    this.validateAchvs(ModifierAchv, modifier);
+    const modifiersToRemove = [];
+    if (modifier instanceof PersistentModifier) {
+      if ((modifier).add(this.modifiers, !!virtual)) {
+        if (modifier instanceof PokemonFormChangeItemModifier) {
+          const pokemon = this.getPokemonById(modifier.pokemonId);
+          if (pokemon) {
+            success = modifier.apply(pokemon, true);
+          }
+        }
+        if (playSound && !this.sound.get(soundName)) {
+          this.playSound(soundName);
+        }
+      } else if (!virtual) {
+        const defaultModifierType = getDefaultModifierTypeForTier(modifier.type.tier);
+        //Message are handled differently
+        this.phaseManager.queueMessage(
+          i18next.t("battle:itemStackFull", {
+            fullItemName: modifier.type.name,
+            itemName: defaultModifierType.name,
+          }),
+          undefined,
+          false,
+          3000,
+        );
+        return this.addModifier(defaultModifierType.newModifier(), ignoreUpdate, playSound, false, instant);
+      }
+
+      for (const rm of modifiersToRemove) {
+        this.removeModifier(rm);
+      }
+
+      if (!ignoreUpdate && !virtual) {
+        this.updateModifiers(true, instant);
+      }
+    } else if (modifier instanceof ConsumableModifier) {
+      if (playSound && !this.sound.get(soundName)) {
+        this.playSound(soundName);
+      }
+
+      if (modifier instanceof ConsumablePokemonModifier) {
+        for (const p in this.party) {
+          const pokemon = this.party[p];
+
+          const args = [];
+          if (modifier instanceof PokemonHpRestoreModifier) {
+            if ((modifier).fainted) {
+              args.push(1);
+            } else {
+              const hpRestoreMultiplier = new NumberHolder(1);
+              this.applyModifiers(HealingBoosterModifier, true, hpRestoreMultiplier);
+              args.push(hpRestoreMultiplier.value);
+            }
+          } else if (modifier instanceof FusePokemonModifier) {
+            args.push(this.getPokemonById(modifier.fusePokemonId));
+          } else if (modifier instanceof RememberMoveModifier && cost != null) {
+            args.push(cost);
+          }
+
+          if (modifier.shouldApply(pokemon, ...args)) {
+            const result = modifier.apply(pokemon, ...args);
+            success ||= result;
+          }
+        }
+
+        this.party.forEach(p => {
+          p.updateInfo(instant);
+        });
+      } else {
+        const args = [this];
+        if (modifier.shouldApply(...args)) {
+          const result = modifier.apply(...args);
+          success ||= result;
+        }
+      }
+    }
+    return success;
+  },
+
+  addEnemyModifier(modifier, ignoreUpdate, instant) {
+    return new Promise(resolve => {
+      const modifiersToRemove = [];
+      if ((modifier).add(this.enemyModifiers, false)) {
+        if (modifier instanceof PokemonFormChangeItemModifier) {
+          const pokemon = this.getPokemonById(modifier.pokemonId);
+          if (pokemon) {
+            modifier.apply(pokemon, true);
+          }
+        }
+        for (const rm of modifiersToRemove) {
+          this.removeModifier(rm, true);
+        }
+      }
+      if (!ignoreUpdate) {
+        this.updateModifiers(false, instant);
+      }
+      resolve();
+    });
+  },
+
+  /**
+   * Try to transfer a held item to another pokemon.
+   * If the recepient already has the maximum amount allowed for this item, the transfer is cancelled.
+   * The quantity to transfer is automatically capped at how much the recepient can take before reaching the maximum stack size for the item.
+   * A transfer that moves a quantity smaller than what is specified in the transferQuantity parameter is still considered successful.
+   * @param itemModifier {@linkcode PokemonHeldItemModifier} item to transfer (represents the whole stack)
+   * @param target {@linkcode Pokemon} recepient in this transfer
+   * @param playSound `true` to play a sound when transferring the item
+   * @param transferQuantity How many items of the stack to transfer. Optional, defaults to `1`
+   * @param instant ??? (Optional)
+   * @param ignoreUpdate ??? (Optional)
+   * @param itemLost If `true`, treat the item's current holder as losing the item (for now, this simply enables Unburden). Default is `true`.
+   * @returns `true` if the transfer was successful
+   */
+  tryTransferHeldItemModifier(
+    itemModifier,
+    target,
+    playSound,
+    transferQuantity = 1,
+    instant,
+    ignoreUpdate,
+    itemLost = true,
+  ){
+    const source = itemModifier.pokemonId ? itemModifier.getPokemon() : null;
+    const cancelled = new BooleanHolder(false);
+
+    if (source && source.isPlayer() !== target.isPlayer()) {
+      applyAbAttrs("BlockItemTheftAbAttr", { pokemon: source, cancelled });
+    }
+
+    if (cancelled.value) {
+      return false;
+    }
+
+    const newItemModifier = itemModifier.clone();
+    newItemModifier.pokemonId = target.id;
+    const matchingModifier = this.findModifier(
+      m => m instanceof PokemonHeldItemModifier && m.matchType(itemModifier) && m.pokemonId === target.id,
+      target.isPlayer(),
+    );
+
+    if (matchingModifier) {
+      const maxStackCount = matchingModifier.getMaxStackCount();
+      if (matchingModifier.stackCount >= maxStackCount) {
+        return false;
+      }
+      const countTaken = Math.min(
+        transferQuantity,
+        itemModifier.stackCount,
+        maxStackCount - matchingModifier.stackCount,
+      );
+      itemModifier.stackCount -= countTaken;
+      newItemModifier.stackCount = matchingModifier.stackCount + countTaken;
+    } else {
+      const countTaken = Math.min(transferQuantity, itemModifier.stackCount);
+      itemModifier.stackCount -= countTaken;
+      newItemModifier.stackCount = countTaken;
+    }
+
+    const removeOld = itemModifier.stackCount === 0;
+
+    if (!removeOld || !source || this.removeModifier(itemModifier, source.isEnemy())) {
+      const addModifier = () => {
+        if (!matchingModifier || this.removeModifier(matchingModifier, target.isEnemy())) {
+          if (target.isPlayer()) {
+            this.addModifier(newItemModifier, ignoreUpdate, playSound, false, instant);
+            if (source && itemLost) {
+              applyAbAttrs("PostItemLostAbAttr", { pokemon: source });
+            }
+            return true;
+          }
+          this.addEnemyModifier(newItemModifier, ignoreUpdate, instant);
+          if (source && itemLost) {
+            applyAbAttrs("PostItemLostAbAttr", { pokemon: source });
+          }
+          return true;
+        }
+        return false;
+      };
+      if (source && source.isPlayer() !== target.isPlayer() && !ignoreUpdate) {
+        this.updateModifiers(source.isPlayer(), instant);
+        addModifier();
+      } else {
+        addModifier();
+      }
+      return true;
+    }
+    return false;
+  },
+  /**
+   * Attempt to discard one or more copies of a held item.
+   * @param itemModifier - The {@linkcode PokemonHeldItemModifier} being discarded
+   * @param discardQuantity - The number of copies to remove (up to the amount currently held); default `1`
+   * @returns Whether the item was successfully discarded.
+   * Removing fewer items than requested is still considered a success.
+   */
+  tryDiscardHeldItemModifier(itemModifier, discardQuantity = 1){
+    const countTaken = Math.min(discardQuantity, itemModifier.stackCount);
+    itemModifier.stackCount -= countTaken;
+
+    if (itemModifier.stackCount > 0) {
+      return true;
+    }
+
+    return this.removeModifier(itemModifier);
+  },
+
+  canTransferHeldItemModifier(itemModifier, target, transferQuantity = 1){
+    const mod = itemModifier.clone();
+    const source = mod.pokemonId ? mod.getPokemon() : null;
+    const cancelled = new BooleanHolder(false);
+
+    if (source && source.isPlayer() !== target.isPlayer()) {
+      applyAbAttrs("BlockItemTheftAbAttr", { pokemon: source, cancelled });
+    }
+
+    if (cancelled.value) {
+      return false;
+    }
+
+    const matchingModifier = this.findModifier(
+      m => m instanceof PokemonHeldItemModifier && m.matchType(mod) && m.pokemonId === target.id,
+      target.isPlayer(),
+    );
+
+    if (matchingModifier) {
+      const maxStackCount = matchingModifier.getMaxStackCount();
+      if (matchingModifier.stackCount >= maxStackCount) {
+        return false;
+      }
+      const countTaken = Math.min(transferQuantity, mod.stackCount, maxStackCount - matchingModifier.stackCount);
+      mod.stackCount -= countTaken;
+    } else {
+      const countTaken = Math.min(transferQuantity, mod.stackCount);
+      mod.stackCount -= countTaken;
+    }
+
+    const removeOld = mod.stackCount === 0;
+
+    return !removeOld || !source || this.hasModifier(itemModifier, !source.isPlayer());
+  },
+
+  removePartyMemberModifiers(partyMemberIndex) {
+    return new Promise(resolve => {
+      const pokemonId = this.getPlayerParty()[partyMemberIndex].id;
+      const modifiersToRemove = this.modifiers.filter(
+        m => m instanceof PokemonHeldItemModifier && (m).pokemonId === pokemonId,
+      );
+      for (const m of modifiersToRemove) {
+        this.modifiers.splice(this.modifiers.indexOf(m), 1);
+      }
+      this.updateModifiers();
+      resolve();
+    });
+  },
+
+  generateEnemyModifiers(heldModifiersConfigs) {
+    return new Promise(resolve => {
+      if (this.currentBattle.battleSpec === BattleSpec.FINAL_BOSS) {
+        return resolve();
+      }
+      const difficultyWaveIndex = this.gameMode.getWaveForDifficulty(this.currentBattle.waveIndex);
+      const isFinalBoss = this.gameMode.isWaveFinal(this.currentBattle.waveIndex);
+      let chances = Math.ceil(difficultyWaveIndex / 10);
+      if (isFinalBoss) {
+        chances = Math.ceil(chances * 2.5);
+      }
+
+      const party = this.getEnemyParty();
+
+      if (this.currentBattle.trainer) {
+        const modifiers = this.currentBattle.trainer.genModifiers(party);
+        for (const modifier of modifiers) {
+          this.addEnemyModifier(modifier, true, true);
+        }
+      }
+
+      party.forEach((enemyPokemon, i) => {
+        if (heldModifiersConfigs && i < heldModifiersConfigs.length && heldModifiersConfigs[i]) {
+          for (const mt of heldModifiersConfigs[i]) {
+            let modifier;
+            if (mt.modifier instanceof PokemonHeldItemModifierType) {
+              modifier = mt.modifier.newModifier(enemyPokemon);
+            } else {
+              modifier = mt.modifier;
+              modifier.pokemonId = enemyPokemon.id;
+            }
+            modifier.stackCount = mt.stackCount ?? 1;
+            modifier.isTransferable = mt.isTransferable ?? modifier.isTransferable;
+            this.addEnemyModifier(modifier, true);
+          }
+        } else {
+          const isBoss =
+            enemyPokemon.isBoss()
+            || (this.currentBattle.battleType === BattleType.TRAINER && !!this.currentBattle.trainer?.config.isBoss);
+          let upgradeChance = 32;
+          if (isBoss) {
+            upgradeChance /= 2;
+          }
+          if (isFinalBoss) {
+            upgradeChance /= 8;
+          }
+          let count = 0;
+          for (let c = 0; c < chances; c++) {
+            if (!randSeedInt(this.gameMode.getEnemyModifierChance(isBoss))) {
+              count++;
+            }
+          }
+          if (isBoss) {
+            count = Math.max(count, Math.floor(chances / 2));
+          }
+          getEnemyModifierTypesForWave(
+            difficultyWaveIndex,
+            count,
+            [enemyPokemon],
+            this.currentBattle.battleType === BattleType.TRAINER ? ModifierPoolType.TRAINER : ModifierPoolType.WILD,
+            upgradeChance,
+          ).map(mt => mt.newModifier(enemyPokemon).add(this.enemyModifiers, false));
+        }
+        return true;
+      });
+      this.updateModifiers(false);
+      resolve();
+    });
+  },
+
+  /**
+   * Removes all modifiers from enemy pokemon of {@linkcode PersistentModifier} type
+   */
+  clearEnemyModifiers() {
+    const modifiersToRemove = this.enemyModifiers.filter(m => m instanceof PersistentModifier);
+    for (const m of modifiersToRemove) {
+      this.enemyModifiers.splice(this.enemyModifiers.indexOf(m), 1);
+    }
+    this.updateModifiers(false);
+    this.updateUIPositions();
+  },
+
+  /**
+   * Removes all modifiers from enemy pokemon of {@linkcode PokemonHeldItemModifier} type
+   * @param pokemon - If specified, only removes held items from that {@linkcode Pokemon}
+   */
+  clearEnemyHeldItemModifiers(pokemon) {
+    const modifiersToRemove = this.enemyModifiers.filter(
+      m => m instanceof PokemonHeldItemModifier && (!pokemon || m.getPokemon() === pokemon),
+    );
+    for (const m of modifiersToRemove) {
+      this.enemyModifiers.splice(this.enemyModifiers.indexOf(m), 1);
+    }
+    this.updateModifiers(false);
+    this.updateUIPositions();
+  },
+
+  setModifiersVisible(visible) {
+    [this.modifierBar, this.enemyModifierBar].map(m => m.setVisible(visible));
+  },
+
+  // TODO: Document this
+  updateModifiers(player = true, instant) {
+    const modifiers = player ? this.modifiers : (this.enemyModifiers);
+    for (let m = 0; m < modifiers.length; m++) {
+      const modifier = modifiers[m];
+      if (
+        modifier instanceof PokemonHeldItemModifier
+        && !this.getPokemonById((modifier).pokemonId)
+      ) {
+        modifiers.splice(m--, 1);
+      }
+      if (
+        modifier instanceof PokemonHeldItemModifier
+        && modifier.getSpecies() != null
+        && !this.getPokemonById(modifier.pokemonId)?.hasSpecies(modifier.getSpecies())
+      ) {
+        modifiers.splice(m--, 1);
+      }
+    }
+    for (const modifier of modifiers) {
+      if (modifier instanceof PersistentModifier) {
+        (modifier).virtualStackCount = 0;
+      }
+    }
+
+    const modifiersClone = modifiers.slice(0);
+    for (const modifier of modifiersClone) {
+      if (!modifier.getStackCount()) {
+        modifiers.splice(modifiers.indexOf(modifier), 1);
+      }
+    }
+
+    this.updatePartyForModifiers(player ? this.getPlayerParty() : this.getEnemyParty(), instant);
+    (player ? this.modifierBar : this.enemyModifierBar).updateModifiers(modifiers);
+    if (!player) {
+      this.updateUIPositions();
+    }
+  },
+
+  updatePartyForModifiers(party, instant) {
+    return new Promise(resolve => {
+      Promise.allSettled(
+        party.map(p => {
+          p.calculateStats();
+          return p.updateInfo(instant);
+        }),
+      ).then(() => resolve());
+    });
+  },
+
+  hasModifier(modifier, enemy = false) {
+    const modifiers = enemy ? this.enemyModifiers : this.modifiers;
+    return modifiers.indexOf(modifier) > -1;
+  },
+
+  /**
+   * Removes a currently owned item. If the item is stacked, the entire item stack
+   * gets removed. This function does NOT apply in-battle effects, such as Unburden.
+   * If in-battle effects are needed, use {@linkcode Pokemon.loseHeldItem} instead.
+   * @param modifier The item to be removed.
+   * @param enemy `true` to remove an item owned by the enemy rather than the player; default `false`.
+   * @returns `true` if the item exists and was successfully removed, `false` otherwise
+   */
+  removeModifier(modifier, enemy = false) {
+    const modifiers = enemy ? this.enemyModifiers : this.modifiers;
+    const modifierIndex = modifiers.indexOf(modifier);
+    if (modifierIndex > -1) {
+      modifiers.splice(modifierIndex, 1);
+      if (modifier instanceof PokemonFormChangeItemModifier) {
+        const pokemon = this.getPokemonById(modifier.pokemonId);
+        if (pokemon) {
+          modifier.apply(pokemon, false);
+        }
+      }
+      return true;
+    }
+
+    return false;
+  },
+
+  /**
+   * Get all of the modifiers that match `modifierType`
+   * @param modifierType The type of modifier to apply; must extend {@linkcode PersistentModifier}
+   * @param player Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @returns the list of all modifiers that matched `modifierType`.
+   */
+  getModifiers(modifierType, player = true){
+    return (player ? this.modifiers : this.enemyModifiers).filter((m) => m instanceof modifierType);
+  },
+
+  /**
+   * Get all of the modifiers that pass the `modifierFilter` function
+   * @param modifierFilter The function used to filter a target's modifiers
+   * @param isPlayer Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @returns the list of all modifiers that passed the `modifierFilter` function
+   */
+  findModifiers(modifierFilter, isPlayer = true){
+    return (isPlayer ? this.modifiers : this.enemyModifiers).filter(modifierFilter);
+  },
+
+  /**
+   * Find the first modifier that pass the `modifierFilter` function
+   * @param modifierFilter The function used to filter a target's modifiers
+   * @param player Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @returns the first modifier that passed the `modifierFilter` function; `undefined` if none passed
+   */
+  findModifier(modifierFilter, player = true) {
+    return (player ? this.modifiers : this.enemyModifiers).find(modifierFilter);
+  },
+
+  /**
+   * Apply all modifiers that match `modifierType` in a random order
+   * @param modifierType The type of modifier to apply; must extend {@linkcode PersistentModifier}
+   * @param player Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @param args The list of arguments needed to invoke `modifierType.apply`
+   * @returns the list of all modifiers that matched `modifierType` and were applied.
+   */
+  applyShuffledModifiers(
+    modifierType,
+    player = true,
+    ...args
+  ){
+    let modifiers = (player ? this.modifiers : this.enemyModifiers).filter(
+      (m) => m instanceof modifierType && m.shouldApply(...args),
+    );
+    const shuffleModifiers = mods => {
+      if (mods.length === 0) {
+        return mods;
+      }
+      const rand = randInt(mods.length);
+      return [mods[rand], ...shuffleModifiers(mods.filter((_, i) => i !== rand))];
+    };
+    modifiers = shuffleModifiers(modifiers);
+    return this.applyModifiersInternal(modifiers, player, args);
+  },
+
+  /**
+   * Apply all modifiers that match `modifierType`
+   * @param modifierType The type of modifier to apply; must extend {@linkcode PersistentModifier}
+   * @param player Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @param args The list of arguments needed to invoke `modifierType.apply`
+   * @returns the list of all modifiers that matched `modifierType` and were applied.
+   */
+  applyModifiers(
+    modifierType,
+    player = true,
+    ...args
+  ){
+    const modifiers = (player ? this.modifiers : this.enemyModifiers).filter(
+      (m) => m instanceof modifierType && m.shouldApply(...args),
+    );
+    return this.applyModifiersInternal(modifiers, player, args);
+  },
+
+  /** Helper function to apply all passed modifiers */
+  applyModifiersInternal(
+    modifiers,
+    player,
+    args,
+  ){
+    const appliedModifiers = [];
+    for (const modifier of modifiers) {
+      if (modifier.apply(...args)) {
+        console.log("Applied", modifier.type.name, player ? "" : "(enemy)");
+        appliedModifiers.push(modifier);
+      }
+    }
+
+    return appliedModifiers;
+  },
+
+  /**
+   * Apply the first modifier that matches `modifierType`
+   * @param modifierType The type of modifier to apply; must extend {@linkcode PersistentModifier}
+   * @param player Whether to search the player (`true`) or the enemy (`false`); Defaults to `true`
+   * @param args The list of arguments needed to invoke `modifierType.apply`
+   * @returns the first modifier that matches `modifierType` and was applied; return `null` if none matched
+   */
+  applyModifier(
+    modifierType,
+    player = true,
+    ...args
+  ) {
+    const modifiers = (player ? this.modifiers : this.enemyModifiers).filter(
+      (m) => m instanceof modifierType && m.shouldApply(...args),
+    );
+    for (const modifier of modifiers) {
+      if (modifier.apply(...args)) {
+        console.log("Applied", modifier.type.name, player ? "" : "(enemy)");
+        return modifier;
+      }
+    }
+
+    return null;
+  },
+
+  triggerPokemonFormChange(
+    pokemon,
+    formChangeTriggerType,
+    delayed = false,
+    modal = false,
+  ) {
+    if (pokemonFormChanges.hasOwnProperty(pokemon.species.speciesId)) {
+      // in case this is NECROZMA, determine which forms this
+      const matchingFormChangeOpts = pokemonFormChanges[pokemon.species.speciesId].filter(
+        fc => fc.findTrigger(formChangeTriggerType) && fc.canChange(pokemon),
+      );
+      let matchingFormChange;
+      if (pokemon.species.speciesId === SpeciesId.NECROZMA && matchingFormChangeOpts.length > 1) {
+        // Ultra Necrozma is changing its form back, so we need to figure out into which form it devolves.
+        const formChangeItemModifiers = (
+          this.findModifiers(
+            m => m instanceof PokemonFormChangeItemModifier && m.pokemonId === pokemon.id,
+          )
+        )
+          .filter(m => m.active)
+          .map(m => m.formChangeItem);
+
+        matchingFormChange = formChangeItemModifiers.includes(FormChangeItem.N_LUNARIZER)
+          ? matchingFormChangeOpts[0]
+          : formChangeItemModifiers.includes(FormChangeItem.N_SOLARIZER)
+            ? matchingFormChangeOpts[1]
+            : null;
+      } else {
+        matchingFormChange = matchingFormChangeOpts[0];
+      }
+      if (matchingFormChange) {
+        let phase;
+        if (pokemon.isPlayer() && !matchingFormChange.quiet) {
+          phase = this.phaseManager.create("FormChangePhase", pokemon, matchingFormChange, modal);
+        } else {
+          phase = this.phaseManager.create("QuietFormChangePhase", pokemon, matchingFormChange);
+        }
+        if (pokemon.isPlayer() && !matchingFormChange.quiet && modal) {
+          this.phaseManager.overridePhase(phase);
+        } else if (delayed) {
+          this.phaseManager.pushPhase(phase);
+        } else {
+          this.phaseManager.unshiftPhase(phase);
+        }
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  triggerPokemonBattleAnim(
+    pokemon,
+    battleAnimTypeAnimType,
+    fieldAssets,
+    delayed = false,
+  ) {
+    const phaseManager = this.phaseManager;
+    const phase = phaseManager.create("PokemonAnimPhase", battleAnimType, pokemon, fieldAssets);
+    if (delayed) {
+      phaseManager.pushPhase(phase);
+    } else {
+      phaseManager.unshiftPhase(phase);
+    }
+    return true;
+  },
+
+  updateGameInfo() {
+    const gameInfo = {
+      playTime: this.sessionPlayTime ?? 0,
+      gameMode: this.currentBattle ? this.gameMode.getName() : "Title",
+      biome: this.currentBattle ? getBiomeName(this.arena.biomeId) : "",
+      wave: this.currentBattle?.waveIndex ?? 0,
+      party:
+        this.party?.map(p => ({
+          name: p.name,
+          form: p.getFormKey(),
+          types: p.getTypes().map(type => PokemonType[type]),
+          level: p.level,
+          currentHP: p.hp,
+          maxHP: p.getMaxHp(),
+          status: p.status?.effect ? StatusEffect[p.status.effect] : "",
+        })) ?? [], // TODO: review if this can be nullish
+      modeChain: this.ui?.getModeChain() ?? [],
+    };
+    (window).gameInfo = gameInfo;
+  },
+
+  /**
+   * This function retrieves the sprite and audio keys for active Pokemon.
+   * Active Pokemon include both enemy and player Pokemon of the current wave.
+   * Note: Questions on garbage collection go to `@frutescens`
+   * @returns a string array of active sprite and audio keys that should not be deleted
+   */
+  getActiveKeys() {
+    const keys = [];
+    let activePokemon = this.getPlayerParty();
+    activePokemon = activePokemon.concat(this.getEnemyParty());
+    for (const p of activePokemon) {
+      keys.push(p.getSpriteKey(true));
+      if (p.isPlayer()) {
+        keys.push(p.getBattleSpriteKey(true, true));
+      }
+      keys.push(p.species.getCryKey(p.formIndex));
+    }
+    return keys;
+  },
+
+  /**
+   * Updates Exp and level values for Player's party, adding new level up phases as required
+   * @param expValue raw value of exp to split among participants, OR the base multiplier to use with waveIndex
+   * @param pokemonDefeated If true, will increment Macho Brace stacks and give the party Pokemon friendship increases
+   * @param useWaveIndexMultiplier Default `false`. If true, will multiply expValue by a scaling waveIndex multiplier. Not needed if expValue is already scaled by level/wave
+   * @param participantIds - A `Set` containing the IDs of all Pokemon that will share the EXP earned.
+   * If omitted, will default to the current battle's participants.
+   */
+  applyPartyExp(
+    expValue,
+    pokemonDefeated,
+    participantIds = this.currentBattle.playerParticipantIds,
+  ) {
+    // TODO: make this code actually not insane
+    const party = this.getPlayerParty();
+    const expShareModifier = this.findModifier(m => m instanceof ExpShareModifier);
+    const expBalanceModifier = this.findModifier(m => m instanceof ExpBalanceModifier);
+    const multipleParticipantExpBonusModifier = this.findModifier(
+      m => m instanceof MultipleParticipantExpBonusModifier,
+    );
+    const nonFaintedPartyMembers = party.filter(p => p.hp);
+    const expPartyMembers = nonFaintedPartyMembers.filter(p => p.level < this.getMaxExpLevel());
+    const partyMemberExp = [];
+    // EXP value calculation is based off Pokemon.getExpValue
+    if (participantIds.size > 0) {
+      if (
+        this.currentBattle.battleType === BattleType.TRAINER
+        || this.currentBattle.mysteryEncounter?.encounterMode === MysteryEncounterMode.TRAINER_BATTLE
+      ) {
+        expValue = Math.floor(expValue * 1.5);
+      } else if (this.currentBattle.isBattleMysteryEncounter() && this.currentBattle.mysteryEncounter) {
+        expValue = Math.floor(expValue * this.currentBattle.mysteryEncounter.expMultiplier);
+      }
+      for (const partyMember of nonFaintedPartyMembers) {
+        const pId = partyMember.id;
+        const participated = participantIds.has(pId);
+        if (participated && pokemonDefeated) {
+          partyMember.addFriendship(FRIENDSHIP_GAIN_FROM_BATTLE);
+          const machoBraceModifier = partyMember.getHeldItems().find(m => m instanceof PokemonIncrementingStatModifier);
+          if (machoBraceModifier && machoBraceModifier.stackCount < machoBraceModifier.getMaxStackCount()) {
+            machoBraceModifier.stackCount++;
+            this.updateModifiers(true, true);
+            partyMember.updateInfo();
+          }
+        }
+        if (!expPartyMembers.includes(partyMember)) {
+          continue;
+        }
+        if (!participated && !expShareModifier) {
+          partyMemberExp.push(0);
+          continue;
+        }
+        let expMultiplier = 0;
+        if (participated) {
+          expMultiplier += 1 / participantIds.size;
+          if (participantIds.size > 1 && multipleParticipantExpBonusModifier) {
+            expMultiplier += multipleParticipantExpBonusModifier.getStackCount() * 0.2;
+          }
+        } else if (expShareModifier) {
+          expMultiplier += (expShareModifier.getStackCount() * 0.2) / participantIds.size;
+        }
+        if (partyMember.pokerus) {
+          expMultiplier *= 1.5;
+        }
+        const pokemonExp = new NumberHolder(expValue * expMultiplier);
+        this.applyModifiers(PokemonExpBoosterModifier, true, partyMember, pokemonExp);
+        partyMemberExp.push(Math.floor(pokemonExp.value));
+      }
+
+      if (expBalanceModifier) {
+        let totalLevel = 0;
+        let totalExp = 0;
+        expPartyMembers.forEach((expPartyMember, epm) => {
+          totalExp += partyMemberExp[epm];
+          totalLevel += expPartyMember.level;
+        });
+
+        const medianLevel = Math.floor(totalLevel / expPartyMembers.length);
+
+        const recipientExpPartyMemberIndexes = [];
+        expPartyMembers.forEach((expPartyMember, epm) => {
+          if (expPartyMember.level <= medianLevel) {
+            recipientExpPartyMemberIndexes.push(epm);
+          }
+        });
+
+        const splitExp = Math.floor(totalExp / recipientExpPartyMemberIndexes.length);
+
+        expPartyMembers.forEach((_partyMember, pm) => {
+          partyMemberExp[pm] = Phaser.Math.Linear(
+            partyMemberExp[pm],
+            recipientExpPartyMemberIndexes.indexOf(pm) > -1 ? splitExp : 0,
+            0.2 * expBalanceModifier.getStackCount(),
+          );
+        });
+      }
+
+      for (let pm = 0; pm < expPartyMembers.length; pm++) {
+        const exp = partyMemberExp[pm];
+
+        if (exp) {
+          const partyMemberIndex = party.indexOf(expPartyMembers[pm]);
+          this.phaseManager.unshiftPhase(
+            expPartyMembers[pm].isOnField()
+              ? this.phaseManager.create("ExpPhase", partyMemberIndex, exp)
+              : this.phaseManager.create("ShowPartyExpBarPhase", partyMemberIndex, exp),
+          );
+        }
+      }
+    }
+  },
+  } 
+}
+
+//Use
+export const globalScene = GlobalScene()

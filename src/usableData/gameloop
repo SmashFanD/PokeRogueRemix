@@ -1,0 +1,44 @@
+p.draw = () => {
+  p.clear()
+  if (battleScene.animation.requested.length > 0) {
+    battleScene.animation.doRequest();
+    //Anim with waitRequest, we skip update
+    if (battleScene.animation.requested.some(r => r.waitRequest)) {
+      battleScene.draw();
+      return;
+    }
+  }
+
+  //check if the ui request an input && if input contain one of the request
+  //if Complete remove the input that are needed
+  if (!battleScene.ui.requestComplete()) {
+    battleScene.draw();
+    return;
+  }
+
+  battleScene.update();
+  battleScene.draw();
+}
+
+p.keyPressed = (keyEvent) => {
+  if (battleScene.animation.requested.some(r => r.waitRequest)) return;
+  battleScene.keyPressed(keyEvent);
+}
+p.keyPressed = (keyEvent) => {
+    if (keyEvent.key === "p" || keyEvent.key === "P") ConfigGame.PAUSE = !ConfigGame.PAUSE
+    switch (scene) {
+        case ConfigGame.GameState.MENU_SCENE:
+            titleScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.STARTER_SELECT_SCENE:
+            starterSelectScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.SAVE_SCENE:
+            saveScene.onKey(keyEvent);
+            break;
+        case ConfigGame.GameState.BATTLE_SCENE:
+            battleScene.onKey(keyEvent);
+            break;
+        default:
+    }
+  }
