@@ -1,6 +1,6 @@
 export const ConfigGame = {
-  FPS: 60,
-  FPS_RATE: 1000 / 60,
+  FPS: 30,
+  FPS_RATE: 1000 / 30,
   CANVAS_WIDTH: 1920,
   CANVAS_HEIGHT: 1080,
   GameState: {

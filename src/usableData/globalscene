@@ -2,12 +2,14 @@ import { Animation } from "./game/animation.js"
 
 class BattleScene {
     animation = new Animation()
-    lastPhase = null
+    phase = new PhaseManager()
+    ui = null
     preload() {}
-    setup() {}
+    setup() {
+
+    }
     update() {
-      //should i make a class for this
-      goToLastPhase(this.lastPhase)
+      this.phase.goToLast()
     }
     keyPressed(keyEvent) {}
 }

@@ -6,7 +6,7 @@ import { drawBox, setText } from "./draw.js";
 import { globalGameData, PokemonGeneration } from "../data/global.js";
 import { TextStarterSelectGenData } from "../data/text.js";
 import { updateIndexY } from "./manage-input.js";
-import { ConfigGame } from "src/system.js";
+import { ConfigGame } from "../system.js";
 
 export function StarterSelectScene(p) {
     return {

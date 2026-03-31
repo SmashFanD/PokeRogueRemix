@@ -1,20 +1,38 @@
+import { delayFrame } from "../utilsjs";
+
 export class Animation {
-    requested = [] //array of requested animation
-    //some anim need to wait for update to continue
-    //if waitRequest true the game will wait for the anim to complete to continue
-    request(itemData, animData, time, waitRequest = false) {
-        this.requested.push({ itemData, animData, time, waitRequest });
+    requested = null;
+
+    async request(itemData, animData, time, interval) {
+        // Attendre que l'animation précédente soit terminée si waitRequest est vrai
+        if (this.requested) {
+            await new Promise(resolve => {
+                const check = () => {
+                    if (this.requested === null) {
+                        resolve();
+                    } else {
+                        requestAnimationFrame(check);
+                    }
+                };
+                check();
+            });
+        }
+
+        this.requested = { itemData, animData, time, interval };
+        await this.doRequest(itemData, animData, time, interval);
+        this.requested = null; // Marquer comme terminé
     }
-    doRequest() {
-        //do the animation using this.animationData
-        if (this.requested.length === 0) return
-        for (const request of this.requested) {
-            request.itemData.x += request.animData.x
-            request.itemData.y += request.animData.y
-            request.animData.time -= 1
-            if (request.animData.time <= 0) {
-                this.requested = this.requested.filter(r => r !== request)
-            }
+
+    async doRequest(itemData, animData, time, interval) {
+        const tick = Math.ceil(time / interval);
+
+        for (let i = 1; i <= tick; i++) {
+            // Mettre à jour les coordonnées
+            itemData.x += animData.x / tick;
+            itemData.y += animData.y / tick;
+
+            // Attendre le prochain frame
+            await delayFrame(interval);
         }
     }
 }
