@@ -13,7 +13,6 @@ import { SND_Background } from "../constant/sound/bgm.js";
 import { TextMenuContent, TextOptionLeftContent, TextOptionTopContent, TextTitleContent } from "../../locale/en.js";
 import { TextBattleData, TextMenuData, TextOptionLeftData, TextOptionLeftGrayData, TextOptionRightData, TextOptionTopData, TextTitleData } from "../data/text.js";
 import { TextBoxBattleData, TextBoxMenuData, TextBoxOptionData, TextBoxTitleData } from "../data/rect.js";
-import { globalGameData } from "../data/global.js";
 import { showModifiedText } from "./text.js";
 import { getKeyByValue } from "../utils.js";
 import { saveData } from "../save.js";
@@ -70,49 +69,6 @@ export function TitleScene(p) {
             //    setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (Fr Fr)", TextBattleLogData, i);
             //}
 
-            //MenuUIBoxExemple
-            if (this.phase === MenuPhase.TITLE_MENU) {
-              drawBox(p, TextBoxTitleData);
-              for (let id=0; id < TextTitleContent.length; id++) {
-                 setText(p, TextTitleContent[id], TextTitleData, id)
-              }
-              p.image(this.cursorImg, 1694, this.cursorIndex * 62 + 902, 30, 30)
-              return
-            }
-            if (this.phase === MenuPhase.MENU) {
-              drawBox(p, TextBoxMenuData);
-              for (let id=0; id < TextMenuContent.length; id++) {
-                 setText(p, TextMenuContent[id], TextMenuData, id)
-              }
-              if (this.cursorMenuIndex > 0) {
-                drawBox(p, TextBoxBattleData)
-                showModifiedText(p, this.cursorMenuIndex)
-
-              }
-              p.image(this.cursorImg, 1712, this.cursorMenuIndex * 60 + 24, 30, 30)
-              return
-            }
-            if (this.phase === MenuPhase.OPTIONS) {
-              drawBox(p, TextBoxOptionData);
-              for (let id = 0; id < TextOptionTopContent.length; id++) {
-                 setText(p, TextOptionTopContent[id], TextOptionTopData, id)
-              }
-              const musicPlay = `The BGM playing will be: ${this.selectedMusic.NAME}`
-              for (let id = 0; id < TextOptionLeftContent.length; id++) {
-                if (id === 0) setText(p, musicPlay, this.bgmForced ? TextOptionLeftGrayData : TextOptionLeftData, id) //make it darker if can't change
-                if (id === 1) setText(p, this.bgmForced ? "BGM will not change!" : "BGM can change!", TextOptionLeftData, id)
-              }
-
-              //SOUND ONLY
-              if(this.cursorOptionIndex >= MENU_PHASE_SOUND_START) {
-                const index = this.cursorOptionIndex - MENU_PHASE_SOUND_START
-                p.image(this.cursorImg, 16, index * 74 + 152, 30, 30) //Cursor for Sounds options
-              } else {
-                p.image(this.cursorImg, this.cursorOptionIndex * 62 + 18, 52, 35, 35)
-              }
-              return
-            }
-
             //BattleBoxExemple
             //drawBox(p, TextBoxBattleData);
             //setText(p, "The opposing Eternatos-EternaMax is paralyzed, this will make it difficult to use any of their actions! (For Real, For Real)", TextBattleData);
@@ -120,14 +76,6 @@ export function TitleScene(p) {
         },
         //Should depend on last played wave (current)
         onKey(keyEvent) {
-          if (keyEvent.key === "enter") {
-            if (this.phase !== MenuPhase.MENU) {
-              this.newPhase = MenuPhase.MENU
-            } else {
-              this.newPhase = MenuPhase.TITLE_MENU
-            }
-            return
-          }
           if (keyEvent.key === "z" || keyEvent.key === "Z") {
             //TODO, Add Options and Info
             if (this.phase === MenuPhase.TITLE_MENU) {

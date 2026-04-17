@@ -1,4 +1,4 @@
-import { delayFrame } from "../utilsjs";
+import { delayFrame } from "../utils.js";
 
 export class Animation {
     requested = null;

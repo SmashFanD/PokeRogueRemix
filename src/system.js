@@ -1,16 +1,4 @@
-export const ConfigGame = {
-  FPS: 30,
-  FPS_RATE: 1000 / 30,
-  CANVAS_WIDTH: 1920,
-  CANVAS_HEIGHT: 1080,
-  GameState: {
-    MENU_SCENE: 0,
-    STARTER_SELECT_SCENE: 1,
-    SAVE_SCENE: 2,
-    BATTLE_SCENE: 3
-  },
-  PAUSE: false
-}
+export const ConfigGame = {}
 export const ConfigUI = {
   Text: {
     Smallest: 8,

@@ -1,6 +1,6 @@
 import { Animation } from "./game/animation.js"
 
-class BattleScene {
+class GlobalScene {
     animation = new Animation()
     phase = new PhaseManager()
     ui = null

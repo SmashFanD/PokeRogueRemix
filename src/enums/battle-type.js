@@ -1,6 +1,6 @@
 export const BattleType = {
-  WILD,
-  TRAINER,
+  WILD: 0,
+  TRAINER: 1,
   // TODO: This leaves a hole in the enum members and is basically never used
-  CLEAR
+  CLEAR: 2
 }

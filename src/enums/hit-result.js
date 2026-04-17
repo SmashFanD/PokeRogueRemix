@@ -1,0 +1,15 @@
+export const HitResult = {
+  EFFECTIVE: 1,
+  SUPER_EFFECTIVE: 2,
+  NOT_VERY_EFFECTIVE: 3,
+  ONE_HIT_KO: 4,
+  NO_EFFECT: 5,
+  STATUS: 6,
+  HEAL: 7,
+  FAIL: 8,
+  MISS: 9,
+  INDIRECT: 10,
+  IMMUNE: 11,
+  CONFUSION: 12,
+  INDIRECT_KO: 13,
+}

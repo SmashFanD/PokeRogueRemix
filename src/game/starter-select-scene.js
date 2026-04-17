@@ -3,7 +3,6 @@ import { StarterSelectPhase } from "../data/phase.js";
 import { saveData } from "../save.js";
 import { IMG_UI } from "../constant/image/ui.js";
 import { drawBox, setText } from "./draw.js";
-import { globalGameData, PokemonGeneration } from "../data/global.js";
 import { TextStarterSelectGenData } from "../data/text.js";
 import { updateIndexY } from "./manage-input.js";
 import { ConfigGame } from "../system.js";

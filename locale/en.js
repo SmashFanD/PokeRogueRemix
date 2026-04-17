@@ -12,11 +12,11 @@ export const Text = {
     WHAT_WILL_PKMN_DO: 9,
 }
 
-export const TextTitleContent = [
-    "New Run",
-    "Continue",
-    "Menu"
-]
+export const TextTitleContent = {
+    NEW_RUN: "menu:newGame",
+    CONTINUE: "menu:continue",
+    MENU: "menu:menu"
+}
 
 export const TextMenuContent = [
     "Options",

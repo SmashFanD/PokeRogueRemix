@@ -1,7 +1,7 @@
 import { BrowserWindow, app, Menu } from 'electron';
 
 function createWindow () {
-  const win = new BrowserWindow({ width: 960, height: 540 })
+  const win = new BrowserWindow({ width: 1200, height: 720 })
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {
       webPreferences: {

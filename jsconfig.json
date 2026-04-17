@@ -4,9 +4,8 @@
     "target": "es2016",
     "jsx": "preserve",
     "checkJs": false,
-    "baseUrl": ".",
     "paths": {
-      "*": ["*", "./*"]
+      "*": ["../*", "./*"]
     }
   },
   "exclude": [

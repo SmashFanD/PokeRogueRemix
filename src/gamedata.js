@@ -1,4 +1,13 @@
+import { speciesStarterCosts } from "./balance.js";
+import { defaultStarterSpecies } from "./data/constant.js";
+import { allSpecies } from "./data/data-list.js";
+import { pokemonPrevolutions } from "./data/pokemon-evolution.js";
+import { AbilityAttr } from "./enums/ability-attr.js";
+import { DexAttr } from "./enums/dex-attr.js";
 import {  GameDataType } from "./enums/gamedatatype.js"
+import { Nature } from "./enums/nature.js";
+import { resetSettings } from "./system/settings/settings.js";
+import { randItem } from "./utils.js";
 
 function getDataTypeKey(gameDataType, slotId)  {
   switch (dataType) {
@@ -14,18 +23,11 @@ function getDataTypeKey(gameDataType, slotId)  {
   }
 }
 const systemShortKeys = {
-  caughtAttr: "$ca",
   natureAttr: "$na",
-  seenCount: "$s",
-  caughtCount: "$c",
-  hatchedCount: "$hc",
   ivs: "$i",
   moveset: "$m",
-  eggMoves: "$em",
-  candyCount: "$x",
   friendship: "$f",
   abilityAttr: "$a",
-  passiveAttr: "$pa",
   valueReduction: "$vr",
 };
 export class GameData {
@@ -541,22 +543,20 @@ export class GameData {
     }
 
     const defaultStarterAttr =
-      DexAttr.NON_SHINY | DexAttr.MALE | DexAttr.FEMALE | DexAttr.DEFAULT_VARIANT | DexAttr.DEFAULT_FORM;
+      DexAttr.NON_SHINY | DexAttr.MALE | DexAttr.FEMALE | DexAttr.DEFAULT_FORM;
 
     const defaultStarterNatures = [];
 
     const neutralNatures = [Nature.HARDY, Nature.DOCILE, Nature.SERIOUS, Nature.BASHFUL, Nature.QUIRKY];
     for (const _ of defaultStarterSpecies) {
-      defaultStarterNatures.push(randSeedItem(neutralNatures));
+      defaultStarterNatures.push(randItem(neutralNatures));
     }
 
     for (let ds = 0; ds < defaultStarterSpecies.length; ds++) {
       const entry = data[defaultStarterSpecies[ds]];
-      entry.seenAttr = defaultStarterAttr;
-      entry.caughtAttr = defaultStarterAttr;
       entry.natureAttr = 1 << (defaultStarterNatures[ds] + 1);
       for (const i in entry.ivs) {
-        entry.ivs[i] = 15;
+        entry.ivs[i] = 0;
       }
     }
 
@@ -572,7 +572,6 @@ export class GameData {
     for (const speciesId of starterSpeciesIds) {
       starterData[speciesId] = {
         moveset: null,
-        candyCount: 0,
         abilityAttr: defaultStarterSpecies.includes(speciesId) ? AbilityAttr.ABILITY_1 : 0,
       };
     }
@@ -588,14 +587,8 @@ export class GameData {
    * @param showMessage
    * @returns `true` if Pokemon catch unlocked a new starter, `false` if Pokemon catch did not unlock a starter
    */
-  setPokemonCaught(pokemon, incrementCount, fromEgg, showMessage) {
-    // If incrementCount === false (not a catch scenario), only update the pokemon's dex data if the Pokemon has already been marked as caught in dex
-    // Prevents form changes, nature changes, etc. from unintentionally updating the dex data of a "rental" pokemon
-    const speciesRootForm = pokemon.species.getRootSpeciesId();
-    if (!incrementCount && !globalScene.gameData.dexData[speciesRootForm].caughtAttr) {
-      return Promise.resolve(false);
-    }
-    return this.setPokemonSpeciesCaught(pokemon, pokemon.species, incrementCount, fromEgg, showMessage);
+  setPokemonCaught(pokemon, showMessage) {
+    return this.setPokemonSpeciesCaught(pokemon, pokemon.species, showMessage);
   }
 
   /**
@@ -610,53 +603,16 @@ export class GameData {
   setPokemonSpeciesCaught(
     pokemon,
     species,
-    incrementCount,
-    fromEgg,
     showMessage,
   ) {
     return new Promise<boolean>(resolve => {
       const dexEntry = this.dexData[species.speciesId];
-      const caughtAttr = dexEntry.caughtAttr;
       const formIndex = pokemon.formIndex;
-
-      // This makes sure that we do not try to unlock data which cannot be unlocked
-      const dexAttr = pokemon.getDexAttr() & species.getFullUnlocksData();
-
-      // Mark as caught
-      dexEntry.caughtAttr |= dexAttr;
 
       // If the caught form is a battleform, we want to also mark the base form as caught.
       // This snippet assumes that the base form has formIndex equal to 0, which should be
       // always true except for the case of Urshifu.
       const formKey = pokemon.getFormKey();
-      if (formIndex > 0) {
-        // In case a Pikachu with formIndex > 0 was unlocked, base form Pichu is also unlocked
-        if (pokemon.species.speciesId === SpeciesId.PIKACHU && species.speciesId === SpeciesId.PICHU) {
-          dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(0);
-        }
-        if (pokemon.species.speciesId === SpeciesId.URSHIFU) {
-          if (formIndex === 2) {
-            dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(0);
-          } else if (formIndex === 3) {
-            dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(1);
-          }
-        } else if (pokemon.species.speciesId === SpeciesId.ZYGARDE) {
-          if (formIndex === 4) {
-            dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(2);
-          } else if (formIndex === 5) {
-            dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(3);
-          }
-        } else {
-          const allFormChanges = pokemonFormChanges.hasOwnProperty(species.speciesId)
-            ? pokemonFormChanges[species.speciesId]
-            : [];
-          const toCurrentFormChanges = allFormChanges.filter(f => f.formKey === formKey);
-          if (toCurrentFormChanges.length > 0) {
-            // Needs to do this or Castform can unlock the wrong form, etc.
-            dexEntry.caughtAttr |= globalScene.gameData.getFormAttr(0);
-          }
-        }
-      }
 
       // Unlock ability
       if (speciesStarterCosts.hasOwnProperty(species.speciesId)) {
@@ -670,21 +626,10 @@ export class GameData {
       dexEntry.natureAttr |= 1 << (pokemon.nature + 1);
 
       const hasPrevolution = pokemonPrevolutions.hasOwnProperty(species.speciesId);
-      const newCatch = !caughtAttr;
-      const hasNewAttr = (caughtAttr & dexAttr) !== dexAttr;
 
-      if (incrementCount) {
-        if (!fromEgg) {
-          dexEntry.caughtCount++;
-        }
-
-        if (!hasPrevolution && (!globalScene.gameMode.isDaily || hasNewAttr || fromEgg)) {
-          // TODO: remove `?? 0`, `pokemon.variant` shouldn't be able to be nullish
-          const variantBonus = 2 ** (pokemon.variant ?? 0);
-          const shinyBonus = pokemon.isShiny() ? 5 * variantBonus : 1;
-          const eggOrBossBonus = fromEgg || pokemon.isBoss() ? 2 : 1;
+      if (!hasPrevolution) {
+          //should reduce starter cost directly instead of adding candy
           this.addStarterCandy(species.speciesId, 1 * shinyBonus * eggOrBossBonus);
-        }
       }
 
       const checkPrevolution = (newStarter) => {
@@ -693,8 +638,6 @@ export class GameData {
           this.setPokemonSpeciesCaught(
             pokemon,
             getPokemonSpecies(prevolutionSpecies),
-            incrementCount,
-            fromEgg,
             showMessage,
           ).then(result => resolve(result));
         } else {
@@ -702,7 +645,8 @@ export class GameData {
         }
       };
 
-      if (newCatch && speciesStarterCosts.hasOwnProperty(species.speciesId)) {
+      if (speciesStarterCosts.hasOwnProperty(species.speciesId)) {
+        //should check if pokemon has its cost reduced instead of check for message
         if (!showMessage) {
           resolve(true);
           return;
@@ -721,21 +665,11 @@ export class GameData {
     });
   }
 
-  
-  /** Return whether the root species of a given `PokemonSpecies` has been unlocked in the dex */
-  isRootSpeciesUnlocked(species) {
-    return !!this.dexData[species.getRootSpeciesId()]?.caughtAttr;
-  }
-
   /**
    * Unlocks the given {@linkcode Nature} for a {@linkcode PokemonSpecies} and its prevolutions.
    * Will fail silently if root species has not been unlocked
    */
   unlockSpeciesNature(species, nature) {
-    if (!this.isRootSpeciesUnlocked(species)) {
-      return;
-    }
-
     //recursively unlock nature for species and prevolutions
     const _unlockSpeciesNature = (speciesId) => {
       this.dexData[speciesId].natureAttr |= 1 << (nature + 1);
@@ -759,39 +693,12 @@ export class GameData {
     } while (pokemonPrevolutions.hasOwnProperty(speciesId) && (speciesId = pokemonPrevolutions[speciesId]));
   }
 
-  getSpeciesDefaultDexAttr(species, _forSeen, optimistic) {
+  getSpeciesDefaultDexAttr(species) {
     let ret = 0n;
     const dexEntry = this.dexData[species.speciesId];
     const attr = dexEntry.caughtAttr;
-    if (optimistic) {
-      if (attr & DexAttr.SHINY) {
-        ret |= DexAttr.SHINY;
-
-        if (attr & DexAttr.VARIANT_3) {
-          ret |= DexAttr.VARIANT_3;
-        } else if (attr & DexAttr.VARIANT_2) {
-          ret |= DexAttr.VARIANT_2;
-        } else {
-          ret |= DexAttr.DEFAULT_VARIANT;
-        }
-      } else {
-        ret |= DexAttr.NON_SHINY;
-        ret |= DexAttr.DEFAULT_VARIANT;
-      }
-    } else {
-      // Default to non shiny. Fallback to shiny if it's the only thing that's unlocked
-      ret |= attr & DexAttr.NON_SHINY || !(attr & DexAttr.SHINY) ? DexAttr.NON_SHINY : DexAttr.SHINY;
-
-      if (attr & DexAttr.DEFAULT_VARIANT) {
-        ret |= DexAttr.DEFAULT_VARIANT;
-      } else if (attr & DexAttr.VARIANT_2) {
-        ret |= DexAttr.VARIANT_2;
-      } else if (attr & DexAttr.VARIANT_3) {
-        ret |= DexAttr.VARIANT_3;
-      } else {
-        ret |= DexAttr.DEFAULT_VARIANT;
-      }
-    }
+    ret |= attr & DexAttr.NON_SHINY || !(attr & DexAttr.SHINY) ? DexAttr.NON_SHINY : DexAttr.SHINY;
+  
     ret |= attr & DexAttr.MALE || !(attr & DexAttr.FEMALE) ? DexAttr.MALE : DexAttr.FEMALE;
     ret |= this.getFormAttr(this.getFormIndex(attr));
     return ret;
@@ -800,18 +707,12 @@ export class GameData {
   getSpeciesDexAttrProps(_species, dexAttr) {
     const shiny = !(dexAttr & DexAttr.NON_SHINY);
     const female = !(dexAttr & DexAttr.MALE);
-    let variant = 0;
-    if (dexAttr & DexAttr.VARIANT_2) {
-      variant = 1;
-    } else if (dexAttr & DexAttr.VARIANT_3) {
-      variant = 2;
-    }
+    
     const formIndex = this.getFormIndex(dexAttr);
 
     return {
       shiny,
       female,
-      variant,
       formIndex,
     };
   }
@@ -863,7 +764,6 @@ export class GameData {
     }
 
     const cost = new NumberHolder(value);
-    applyChallenges(ChallengeType.STARTER_COST, speciesId, cost);
 
     return cost.value;
   }
@@ -886,9 +786,24 @@ export class GameData {
   consolidateDexData(dexData) {
     for (const k of Object.keys(dexData)) {
       const entry = dexData[k];
-      if (!entry.hasOwnProperty("natureAttr") || (entry.caughtAttr && !entry.natureAttr)) {
+      if (!entry.hasOwnProperty("natureAttr") || (!entry.natureAttr)) {
         entry.natureAttr = this.defaultDexData?.[k].natureAttr || 1 << randInt(25, 1);
       }
     }
   }
+}
+
+/**
+ * Obtain the local storage key corresponding to a given save slot.
+ * @param slotId - The numerical save slot ID
+ * @throws {Error}
+ * Throws if `slotId < 0` (which likely indicates an invalid slot passed from the title screen)
+ * @returns The local storage key used to access the save data for the given slot.
+ */
+export function getSaveDataLocalStorageKey(slotId) {
+  if (slotId < 0) {
+    throw new Error("Cannot access negative save slot ID from localstorage");
+  }
+
+  return `sessionData${slotId || ""}_${loggedInUser?.username}`;
 }
