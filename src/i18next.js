@@ -15,7 +15,7 @@ class I18next {
       return this.replace(path, options)
     }
     replace(path, options) {
-      const [fileKey, textKey] = path.split(':');
+      const [fileKey, textKey] = path.split(':')
       let text = this.i18n[fileKey]?.[textKey] || path;
   
       return text.replace(/{{(.*?)}}/g, (match, key) => {

@@ -5,9 +5,9 @@ import { globalScene } from "../../global-scene.js"
 import { i18next } from "../../i18next.js"
 
 class MenuScreen {
-    constructor() {
+    constructor() {}
+    async setup() {
       this.cursorIndex = 0
-      this.isSetup = false
       this.boxData = {
         NAME: {
             COLOR: [130, 20, 20],
@@ -82,13 +82,10 @@ class MenuScreen {
         GAME: 5
       }
       this.cursorX = this.textData.NAME.X - 40
-    }
-    async setup() {
       for (const text in this.texts) {
         this.texts[text].name = await i18next.t(this.texts[text].name)
         this.texts[text].info = await i18next.t(this.texts[text].info)
       }
-      this.isSetup = true
     }
     update(p) {
       drawBox(p, this.boxData.NAME);
@@ -131,6 +128,15 @@ class MenuScreen {
       }
       this.cursorIndex = updateIndexY(this.cursorIndex, this.options.OPTIONS, this.options.GAME, key)
       return null
+    }
+    reset() {
+      this.cursorIndex = null
+      this.isSetup = null
+      this.boxData = null
+      this.texts = null
+      this.textData = null
+      this.options = null
+      this.cursorX = null
     }
 }
 export const menuScreen = new MenuScreen()

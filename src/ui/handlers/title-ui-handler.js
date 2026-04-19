@@ -19,16 +19,17 @@ export class TitleUiHandler {
     this.screen = this.screens.TITLE
     this.areSetup = false
   }
-  setup() {
+  async setup() {
     for (const screen of Object.values(this.screens)) {
-      screen.setup() //setup the option box values for all screens
+      if (screen.isSetup) continue
+      await screen.setup() //setup the option box values for all screens
       screen.isSetup = true
     }
     this.areSetup = true
   }
-  update(p) {
+  async update(p) {
     if (!this.areSetup) {
-      this.setup()
+      await this.setup()
     }
     this.screen.update(p) //show the option box for this screen
   }
@@ -41,5 +42,13 @@ export class TitleUiHandler {
       return null
     }
     return null
+  }
+  resetScreens() {
+    for (const [name, screen] of Object.entries(this.screens)) {
+      if (typeof screen.reset === 'function') {
+        screen.reset();
+      }
+    }
+    this.areSetup = false
   }
 }

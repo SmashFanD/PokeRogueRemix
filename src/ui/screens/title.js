@@ -5,9 +5,9 @@ import { globalScene } from "../../global-scene.js"
 import { i18next } from "../../i18next.js"
 
 class TitleScreen {
-    constructor() {
+    constructor() {}
+    async setup() {
       this.cursorIndex = 0
-      this.isSetup = false
       this.boxData = {
         COLOR: [130, 20, 20],
         COLOR_OUTLINE: [185, 80, 80],
@@ -36,12 +36,9 @@ class TitleScreen {
         MENU: 2
       }
       this.cursorX = this.textData.X - 40
-    }
-    async setup() {
       for (const text in this.texts) {
         this.texts[text] = await i18next.t(this.texts[text])
       }
-      this.isSetup = true
     }
     update(p) {
       drawBox(p, this.boxData);
@@ -69,6 +66,15 @@ class TitleScreen {
       }
       this.cursorIndex = updateIndexY(this.cursorIndex, this.options.STARTER, this.options.MENU, key)
       return null
+    }
+    reset() {
+      this.cursorIndex = null
+      this.isSetup = null
+      this.boxData = null
+      this.texts = null
+      this.textData = null
+      this.options = null
+      this.cursorX = null
     }
 }
 export const titleScreen = new TitleScreen()

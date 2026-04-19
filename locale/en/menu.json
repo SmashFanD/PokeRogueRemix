@@ -44,8 +44,9 @@
   "game": "Mechanics",
   "gameInfo": "Some Mechanics may have changed, learn more about them here!",
   "options": "Options",
-  "bgmChoice": "The BGM playing will be: ",
+  "bgmChoice": "BGM playing will be: ",
   "bgmForcedOn": "BGM will not change!",
   "bgmForcedOff": "BGM can change!",
+  "bgmCache": "Number of BGM in cache: ",
   "sound": "Sound"
 }

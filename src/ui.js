@@ -79,13 +79,14 @@ class UI {
       doSetMode()
     });
   }
-  update(p) {
+  async update(p) {
     p.image(globalScene.imgBg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    this.handler.update(p)
+    await this.handler.update(p)
   }
   keyPressed(key) {
     const nextHandler = this.handler.keyPressed(key)
-    if (nextHandler && this.screens[nextHandler]) {
+    if (nextHandler && this.handlers[nextHandler]) {
+      if (nextHandler !== this.handler) this.handler.resetScreens()
       this.handler = this.handlers[nextHandler];
       return null
     }

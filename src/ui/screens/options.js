@@ -2,6 +2,7 @@ import { SND_Background } from "../../constant/sound/bgm.js"
 import { Button } from "../../enums/button.js"
 import { drawBox, setText } from "../../game/draw.js"
 import { updateIndexX, updateIndexY } from "../../game/manage-input.js"
+import { musicPlayer } from "../../game/music.js"
 import { globalScene } from "../../global-scene.js"
 import { i18next } from "../../i18next.js"
 import { getKeyByValue } from "../../utils.js"
@@ -9,7 +10,8 @@ import { getKeyByValue } from "../../utils.js"
 class OptionScreen {
     constructor() {
       this.cursorIndex = 0
-      this.isSetup = false
+    }
+    async setup() {
       this.boxData = {
         BG: {
             COLOR: [130, 20, 20],
@@ -37,7 +39,8 @@ class OptionScreen {
         SOUND: {
             BGM_CHOICE: "menu:bgmChoice",
             BGM_FORCED_ON: "menu:bgmForcedOn",
-            BGM_FORCED_OFF: "menu:bgmForcedOff"
+            BGM_FORCED_OFF: "menu:bgmForcedOff",
+            BGM_CACHE: "menu:bgmCache"
         }
       }
       this.textData = {
@@ -71,14 +74,13 @@ class OptionScreen {
       }
       this.optionSound = {
         BGM_CHOICE: 10,
-        BGM_FORCED: 11
+        BGM_FORCED: 11,
+        BGM_CACHE: 12
       }
       this.cursorX = this.textData.TYPE.X - 50
       this.cursorOptionX = this.textData.OPTION.X - 42
-      this.selectedMusic = SND_Background.END
-    }
-    async setup() {
       this.selectedMusic = globalScene.musicBg
+
       for (const t in this.texts) {
         this.texts[t] = await i18next.t(this.texts[t])
       }
@@ -87,7 +89,6 @@ class OptionScreen {
           this.textsOptions[text][t] = await i18next.t(this.textsOptions[text][t])
         }
       }
-      this.isSetup = true
     }
     update(p) {
       drawBox(p, this.boxData.BG);
@@ -105,6 +106,11 @@ class OptionScreen {
           if (k === "BGM_CHOICE") {
             const data = globalScene.musicForced ? this.textData.OPTION_GRAY : this.textData.OPTION
             setText(p, this.textsOptions.SOUND[k] + this.selectedMusic.NAME, data, textId)
+            textId++
+            continue
+          }
+          if (k === "BGM_CACHE") {
+            setText(p, this.textsOptions.SOUND[k] + musicPlayer.bgmMaxCache, this.textData.OPTION, textId)
             textId++
             continue
           }
@@ -153,11 +159,26 @@ class OptionScreen {
           this.selectedMusic = SND_Background[keysBgm[currentBgmIndex]]
           console.log(this.selectedMusic.NAME)
         }
-        this.cursorIndex = updateIndexY(this.cursorIndex, this.optionSound.BGM_CHOICE, this.optionSound.BGM_FORCED, key)
+        if (this.cursorIndex === this.optionSound.BGM_CACHE) {
+          musicPlayer.bgmMaxCache = updateIndexX(musicPlayer.bgmMaxCache, 0, 255, key)
+        }
+        this.cursorIndex = updateIndexY(this.cursorIndex, this.optionSound.BGM_CHOICE, this.optionSound.BGM_CACHE, key)
         return null
       }
       this.cursorIndex = updateIndexY(this.cursorIndex, this.options.SOUND, this.options.SOUND, key)
       return null
+    }
+    reset() {
+      this.isSetup = null
+      this.boxData = null
+      this.texts = null
+      this.textsOptions = null
+      this.textData = null
+      this.options = null
+      this.optionSound = null
+      this.cursorX = null
+      this.cursorOptionX = null
+      this.selectedMusic = null
     }
 }
 export const optionScreen = new OptionScreen()

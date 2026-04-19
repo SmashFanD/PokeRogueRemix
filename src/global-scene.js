@@ -51,15 +51,15 @@ class GlobalScene {
 
       //this.gameData = new GameData();
     }
-    update(p) {
+    async update(p) {
       
-      this.ui?.update(p)
+      await this.ui?.update(p)
     }
 
     keyPressed(key) {
       console.log(key)
       key = translateInput(key)
-      this.ui.keyPressed(key)
+      this.ui?.keyPressed(key)
       console.log(key)
     }
 }

@@ -27,11 +27,11 @@ new p5((p) => {
     await globalScene.load.setup(p)
     globalScene.setup()
   }
-  p.draw = () => {
+  p.draw = async () => {
     if (PAUSE) {
         return
     }
-    globalScene.update(p)
+    await globalScene.update(p)
     //fpsRecorder.update()
     //fpsRecorder.draw()
     //console.log(fpsRecorder.fps)

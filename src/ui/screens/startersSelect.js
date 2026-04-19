@@ -7,9 +7,9 @@ import { i18next } from "../../i18next.js"
 import { getKeyByValue } from "../../utils.js"
 
 class StarterSelectScreen {
-    constructor() {
+    constructor() {}
+    async setup() {
       this.cursorIndex = 0
-      this.isSetup = false
       this.boxData = {
         BG: {
             COLOR: [25, 135, 25],
@@ -88,18 +88,14 @@ class StarterSelectScreen {
       this.selectedPkm = 0
       this.selectedIndexes = [] 
       this.checkStart = false
-    }
-    async setup() {
-      this.selectedPkm = 0
       for (const t in this.texts) {
-        this.texts[t] = await i18next.t(this.texts[t])
+        //this.texts[t] = await i18next.t(this.texts[t])
       }
       for (const text in this.textsStart) {
         for (const t in this.textsStart[text]) {
-          this.textsStart[text][t] = await i18next.t(this.textsStart[text][t])
+          //this.textsStart[text][t] = await i18next.t(this.textsStart[text][t])
         }
       }
-      this.isSetup = true
     }
     update(p) {
       drawBox(p, this.boxData.BG);
@@ -162,13 +158,29 @@ class StarterSelectScreen {
         return
       }
       const keysStarters = Object.keys(defaultStarterSpecies)
-      let currentStrIndex = keysBgm.indexOf(getKeyByValue(defaultStarterSpecies, this.selectedPkm))
+      let currentStrIndex = keysStarters.indexOf(getKeyByValue(defaultStarterSpecies, this.selectedPkm))
       currentStrIndex = updateIndexX(currentStrIndex, 0, keysStarters.length - 1, key)
       currentStrIndex = updateIndexY(currentStrIndex, 0, keysStarters.length - 1, key, 15)
       
       this.selectedPkm = defaultStarterSpecies[keysStarters[currentStrIndex]]
       console.log(this.selectedPkm)
       return null
+    }
+    reset() {
+      this.cursorIndex = null
+      this.isSetup = null
+      this.boxData = null
+      this.texts = null
+      this.textsStart = null
+      this.textData = null
+      //this should be starters options i think
+      //this.options = starterSelection
+      this.optionsStart = null
+      this.cursorX = null
+      this.cursorAnswerX = null
+      this.selectedPkm = null
+      this.selectedIndexes = null
+      this.checkStart = null
     }
 }
 export const starterSelectScreen = new StarterSelectScreen()
